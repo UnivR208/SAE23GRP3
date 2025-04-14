@@ -1,0 +1,109 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+#search-box {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    position: relative;
+}
+
+input, button {
+    padding: 8px;
+}
+
+#city-input {
+    width: 300px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+.current-weather {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.daily-forecast {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.day-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    width: calc(25% - 10px);
+    min-width: 150px;
+    box-sizing: border-box;
+    background-color: #f9f9f9;
+}
+
+.day-card h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+h2 {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+#suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    width: 300px;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.suggestion-item {
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+}
+
+.suggestion-item:hover {
+    background-color: #f0f0f0;
+}
+
+.city-info {
+    margin-bottom: 10px;
+    font-style: italic;
+}
+
+.population-badge {
+    background-color: #e9f5ff;
+    border-radius: 3px;
+    padding: 2px 5px;
+    font-size: 0.8em;
+    color: #0066cc;
+}

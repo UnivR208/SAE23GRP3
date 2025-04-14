@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Météo par Ville</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Météo par Ville</h1>
+    
+    <!-- Formulaire de recherche -->
+    <div id="search-box">
+        <input type="text" id="city-input" placeholder="Entrez une ville..." value="Paris">
+        <button onclick="searchCity()">Rechercher</button>
+        <div id="suggestions"></div>
+    </div>
+    
+    <!-- Informations sur la localisation -->
+    <div id="city-info" class="city-info"></div>
+    
+    <!-- Message d'état -->
+    <div id="status"></div>
+    
+    <!-- Résultats météo -->
+    <div id="current-weather"></div>
+    <div id="daily-forecast"></div>
+    <div id="hourly-forecast"></div>
+    
+    <!-- Scripts -->
+    <script src="js/cities.js"></script>
+    <script src="js/weather.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
