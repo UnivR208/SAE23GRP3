@@ -1,0 +1,160 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to bottom right, #a6ddf0, #b3e5fc);
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .site-header {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+  }
+  
+  .site-logo {
+    width: 300px;
+    height: auto;
+  }
+  
+  .login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    color: #2e4a55;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 300px;
+    margin-top: 20px;
+  }
+  
+  .login-form input {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .login-form button {
+    padding: 12px;
+    background-color: #007acc;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .login-form button:hover {
+    background-color: #005fa3;
+  }
+  
+  .cloud {
+    position: absolute;
+    opacity: 1;
+    animation: floatCloud 8s ease-in-out infinite;
+  }
+  
+  .cloud1 {
+    top: 10%;
+    left: 5%;
+    width: 300px;
+  }
+  
+  .cloud2 {
+    bottom: 10%;
+    right: 10%;
+    width: 300px;
+  }
+  
+  .star {
+    position: absolute;
+    width: 250px;
+    opacity: 1;
+    animation: floatStar 8s ease-in-out infinite;
+  }
+  
+  .star1 {
+    top: 20%;
+    left: 40%;
+  }
+  
+  .star2 {
+    bottom: 20%;
+    right: 30%;
+  }
+  
+  @keyframes floatCloud {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(100px); }
+    100% { transform: translateY(0px); }
+  }
+  
+  @keyframes floatStar {
+    0% { transform: translateX(0px); }
+    50% { transform: translateX(100px); }
+    100% { transform: translateX(0px); }
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .site-logo {
+      width: 200px;
+    }
+  
+    .login-form {
+      max-width: 90%;
+    }
+  
+    .cloud1,
+    .cloud2 {
+      width: 200px;
+    }
+  
+    .star {
+      width: 150px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .site-header {
+      top: 10px;
+      right: 10px;
+    }
+  
+    .site-logo {
+      width: 150px;
+    }
+  
+    .cloud1,
+    .cloud2,
+    .star1,
+    .star2 {
+      display: none;
+    }
+  
+    .login-form input,
+    .login-form button {
+      font-size: 0.9rem;
+      padding: 10px;
+    }
+  
+    .login-container h2 {
+      font-size: 1rem;
+    }
+  }
+  
