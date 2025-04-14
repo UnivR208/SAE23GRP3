@@ -5,6 +5,33 @@ body {
     margin: 0 auto;
 }
 
+/* Styles pour le sélecteur de résidences */
+.residence-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.residence-button {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f5f5f5;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.residence-button:hover {
+    background-color: #e0e0e0;
+}
+
+.residence-button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+}
+
 #search-box {
     margin-bottom: 20px;
     display: flex;
@@ -71,17 +98,44 @@ h2 {
     padding-bottom: 5px;
 }
 
-#suggestions {
+/* Interface admin */
+.admin-panel {
+    margin-top: 50px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.admin-section {
+    margin-bottom: 20px;
+}
+
+.residence-editor {
+    position: relative;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+
+.city-input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 5px;
+}
+
+/* Suggestions */
+.suggestions {
     position: absolute;
-    top: 100%;
-    left: 0;
     background: white;
-    width: 300px;
+    width: 100%;
     border: 1px solid #ccc;
     max-height: 200px;
     overflow-y: auto;
     z-index: 1000;
     display: none;
+    left: 0;
 }
 
 .suggestion-item {
@@ -106,4 +160,25 @@ h2 {
     padding: 2px 5px;
     font-size: 0.8em;
     color: #0066cc;
+}
+
+#save-residences {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#save-residences:hover {
+    background-color: #218838;
+}
+
+#status {
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    border-left: 4px solid #007bff;
 }

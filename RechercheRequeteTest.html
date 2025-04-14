@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Météo par Ville</title>
+    <title>Météo des Résidences</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Météo par Ville</h1>
+    <h1>Météo des Résidences</h1>
     
-    <!-- Formulaire de recherche -->
+    <!-- Interface résidences -->
+    <div id="residence-selector" class="residence-selector">
+        <!-- Les boutons de résidences seront ajoutés ici dynamiquement -->
+    </div>
+    
+    <!-- Ajout de la barre de recherche qui manquait -->
     <div id="search-box">
-        <input type="text" id="city-input" placeholder="Entrez une ville..." value="Paris">
+        <input type="text" id="city-input" placeholder="Rechercher une ville...">
         <button onclick="searchCity()">Rechercher</button>
-        <div id="suggestions"></div>
     </div>
     
     <!-- Informations sur la localisation -->
     <div id="city-info" class="city-info"></div>
     
     <!-- Message d'état -->
-    <div id="status"></div>
+    <div id="status">Chargement des données utilisateur...</div>
     
     <!-- Résultats météo -->
     <div id="current-weather"></div>
