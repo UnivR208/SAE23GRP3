@@ -4,22 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion</title>
+    <style>
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+        .create-account-form {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+    </style>
 </head>
 <body>
-    <form id="loginForm">
-        <div>
-            <label for="identifier">Email ou ID étudiant</label>
-            <input type="text" id="identifier" name="identifier" required>
+    <div class="container">
+        <h2>Connexion</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="identifier">Email</label>
+                <input type="email" id="identifier" name="identifier" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Se connecter</button>
+        </form>
+        <div id="errorMessage" class="error-message"></div>
+
+        <div id="createAccountForm" class="create-account-form">
+            <h3>Créer un compte</h3>
+            <div class="form-group">
+                <label for="new-name">Nom</label>
+                <input type="text" id="new-name" required>
+            </div>
+            <div class="form-group">
+                <label for="new-email">Email</label>
+                <input type="email" id="new-email" required>
+            </div>
+            <div class="form-group">
+                <label for="new-password">Mot de passe</label>
+                <input type="password" id="new-password" required>
+            </div>
+            <div class="form-group">
+                <label for="new-group">Groupe</label>
+                <select id="new-group" required>
+                    <option value="">Sélectionner un groupe</option>
+                </select>
+            </div>
+            <button type="button" id="createAccountBtn" class="btn btn-primary">Créer le compte</button>
         </div>
-        <div>
-            <label for="password">Mot de passe</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <div>
-            <button type="submit">Se connecter</button>
-        </div>
-    </form>
-    <div id="errorMessage"></div>
+    </div>
 
     <script src="scripts/auth.js"></script>
 </body>
