@@ -295,23 +295,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 const secondaryStageStatus = student.secondary.startDate ? checkDateValidity(student.secondary.startDate, student.secondary.endDate) : { isValid: false, message: "Pas de résidence secondaire" };
                 const otherStageStatus = student.other.startDate ? checkDateValidity(student.other.startDate, student.other.endDate) : { isValid: false, message: "Pas de résidence alternative" };
 
+                // Fonction pour formater les dates
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '';
+                    const date = new Date(dateStr);
+                    return date.toLocaleDateString('fr-FR');
+                };
+
                 studentInfo.innerHTML = `
                     <p>Nom : ${student.name}</p>
                     <p>Email : ${student.email}</p>
                     <div style="margin: 10px 0;">
                         <p><strong>Résidence Principale ${student.main.location ? `(${student.main.location.name})` : ''}</strong></p>
+                        ${student.main.startDate ? `
+                            <p style="margin: 5px 0;">
+                                <span style="color: #666;">Période : du ${formatDate(student.main.startDate)} au ${formatDate(student.main.endDate)}</span>
+                            </p>
+                        ` : ''}
                         <p style="color: ${mainStageStatus.isValid ? 'green' : 'red'}">
                             ${mainStageStatus.message}
                         </p>
                     </div>
                     <div style="margin: 10px 0;">
                         <p><strong>Résidence Secondaire ${student.secondary.location ? `(${student.secondary.location.name})` : ''}</strong></p>
+                        ${student.secondary.startDate ? `
+                            <p style="margin: 5px 0;">
+                                <span style="color: #666;">Période : du ${formatDate(student.secondary.startDate)} au ${formatDate(student.secondary.endDate)}</span>
+                            </p>
+                        ` : ''}
                         <p style="color: ${secondaryStageStatus.isValid ? 'green' : 'red'}">
                             ${secondaryStageStatus.message}
                         </p>
                     </div>
                     <div style="margin: 10px 0;">
                         <p><strong>Autre Résidence ${student.other.location ? `(${student.other.location.name})` : ''}</strong></p>
+                        ${student.other.startDate ? `
+                            <p style="margin: 5px 0;">
+                                <span style="color: #666;">Période : du ${formatDate(student.other.startDate)} au ${formatDate(student.other.endDate)}</span>
+                            </p>
+                        ` : ''}
                         <p style="color: ${otherStageStatus.isValid ? 'green' : 'red'}">
                             ${otherStageStatus.message}
                         </p>
