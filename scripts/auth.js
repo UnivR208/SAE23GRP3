@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch('../data/students.json');
+            const response = await fetch('/users/tdavid/data/students.json');
             if (!response.ok) {
                 throw new Error('Erreur lors du chargement des données');
             }

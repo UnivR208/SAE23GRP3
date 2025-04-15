@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const residenceTypeSelect = document.getElementById('residence-type');
     const addResidenceError = document.getElementById('add-residence-error');
     const useLocationButton = document.getElementById('use-location-button');
+    const addResidenceForm = document.getElementById('add-residence-form');
 
     // Initialiser la date du jour dans le formulaire
     const today = new Date().toISOString().split('T')[0];
@@ -287,18 +288,93 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
+    // Fonction pour sauvegarder dans le fichier JSON
+    async function saveToJSON(studentData) {
+        try {
+            // Sauvegarder d'abord dans le sessionStorage comme backup
+            sessionStorage.setItem('studentData', JSON.stringify(studentData));
+
+            // En mode développement, on ne peut pas écrire directement dans le fichier
+            // On affiche un message pour indiquer comment mettre à jour le fichier
+            console.log('Pour mettre à jour le fichier students.json, copiez le contenu suivant :');
+            console.log(JSON.stringify(studentData, null, 4));
+            
+            return true;
+        } catch (error) {
+            console.error('Erreur de sauvegarde JSON:', error);
+            return false;
+        }
+    }
+
+    // Fonction pour supprimer une résidence
+    async function deleteResidence(residenceType) {
+        try {
+            const studentData = JSON.parse(sessionStorage.getItem('studentData'));
+            const student = studentData.students.find(s => s.id === sessionStorage.getItem('userId'));
+
+            if (student) {
+                // Réinitialiser la résidence
+                student[residenceType] = {};
+                
+                // Sauvegarder les modifications
+                await saveToJSON(studentData);
+                
+                // Recharger les données
+                loadStudentData(sessionStorage.getItem('userId'));
+                showAddResidenceError('Résidence supprimée avec succès', 'green');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la suppression:', error);
+            showAddResidenceError('Erreur lors de la suppression de la résidence');
+        }
+    }
+
+    // Fonction pour mettre à jour l'interface d'ajout
+    function updateAddInterface(student) {
+        const residenceCount = [student.main, student.secondary, student.other]
+            .filter(r => r && r.startDate).length;
+
+        // Masquer les options déjà utilisées dans le select
+        const options = residenceTypeSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            const type = options[i].value;
+            options[i].disabled = student[type] && student[type].startDate !== undefined;
+        }
+
+        // Si toutes les résidences sont utilisées, masquer le formulaire d'ajout
+        addResidenceForm.style.display = residenceCount >= 3 ? 'none' : 'block';
+
+        // Sélectionner automatiquement la première option disponible
+        for (let i = 0; i < options.length; i++) {
+            if (!options[i].disabled) {
+                residenceTypeSelect.selectedIndex = i;
+                break;
+            }
+        }
+    }
+
     async function loadStudentData(studentId) {
         try {
-            // Récupérer les données du sessionStorage
-            const studentData = JSON.parse(sessionStorage.getItem('studentData'));
+            // Essayer d'abord de charger depuis le fichier JSON
+            let studentData;
+            try {
+                const response = await fetch('data/students.json');
+                studentData = await response.json();
+            } catch (error) {
+                // Si échec, utiliser le sessionStorage
+                studentData = JSON.parse(sessionStorage.getItem('studentData'));
+            }
+
             const student = studentData?.students.find(s => s.id === studentId);
 
             if (student) {
+                // Mettre à jour l'interface d'ajout
+                updateAddInterface(student);
+
                 // Vérifier si l'étudiant a des résidences
                 const hasResidences = student.main.startDate || student.secondary.startDate || student.other.startDate;
 
                 if (!hasResidences) {
-                    // Afficher uniquement le message pour ajouter une résidence
                     studentInfo.innerHTML = `
                         <p>Nom : ${student.name}</p>
                         <p>Email : ${student.email}</p>
@@ -334,12 +410,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     return date.toLocaleDateString('fr-FR');
                 };
 
+                // Fonction pour créer le bouton de suppression
+                const createDeleteButton = (type) => `
+                    <button class="delete-btn" onclick="deleteResidence('${type}')" title="Supprimer cette résidence">
+                        🗑️
+                    </button>
+                `;
+
                 studentInfo.innerHTML = `
                     <p>Nom : ${student.name}</p>
                     <p>Email : ${student.email}</p>
                     ${student.main.startDate ? `
                         <div style="margin: 10px 0;">
-                            <p><strong>Résidence Principale ${student.main.location ? `(${student.main.location.name})` : ''}</strong></p>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <p><strong>Résidence Principale ${student.main.location ? `(${student.main.location.name})` : ''}</strong></p>
+                                ${createDeleteButton('main')}
+                            </div>
                             <p style="margin: 5px 0;">
                                 <span style="color: #666;">Période : du ${formatDate(student.main.startDate)} au ${formatDate(student.main.endDate)}</span>
                             </p>
@@ -350,7 +436,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     ` : ''}
                     ${student.secondary.startDate ? `
                         <div style="margin: 10px 0;">
-                            <p><strong>Résidence Secondaire ${student.secondary.location ? `(${student.secondary.location.name})` : ''}</strong></p>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <p><strong>Résidence Secondaire ${student.secondary.location ? `(${student.secondary.location.name})` : ''}</strong></p>
+                                ${createDeleteButton('secondary')}
+                            </div>
                             <p style="margin: 5px 0;">
                                 <span style="color: #666;">Période : du ${formatDate(student.secondary.startDate)} au ${formatDate(student.secondary.endDate)}</span>
                             </p>
@@ -361,7 +450,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     ` : ''}
                     ${student.other.startDate ? `
                         <div style="margin: 10px 0;">
-                            <p><strong>Autre Résidence ${student.other.location ? `(${student.other.location.name})` : ''}</strong></p>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <p><strong>Autre Résidence ${student.other.location ? `(${student.other.location.name})` : ''}</strong></p>
+                                ${createDeleteButton('other')}
+                            </div>
                             <p style="margin: 5px 0;">
                                 <span style="color: #666;">Période : du ${formatDate(student.other.startDate)} au ${formatDate(student.other.endDate)}</span>
                             </p>
@@ -475,4 +567,7 @@ document.addEventListener('DOMContentLoaded', function() {
         studentInfo.appendChild(errorDiv);
         setTimeout(() => errorDiv.remove(), 3000);
     }
+
+    // Exposer la fonction deleteResidence globalement
+    window.deleteResidence = deleteResidence;
 }); 
