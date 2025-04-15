@@ -8,6 +8,7 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 include_once '../config/database.php';
 include_once 'user.php';
 include_once 'residence.php';
+include_once 'sync.php';
 
 $database = new Database();
 $db = $database->getConnection();
@@ -21,6 +22,10 @@ if ($uri[1] == 'api') {
     switch($request_method) {
         case 'POST':
             if ($uri[2] == 'login') {
+                // Synchroniser avant la connexion
+                $sync = new Sync($db);
+                $sync->syncToJson();
+                
                 // Login
                 $data = json_decode(file_get_contents("php://input"));
                 $user = new User($db);
@@ -47,6 +52,10 @@ if ($uri[1] == 'api') {
                 $residence->end_date = $data->end_date;
                 
                 if($residence->create()) {
+                    // Synchroniser avec le fichier JSON
+                    $sync = new Sync($db);
+                    $sync->syncToJson();
+                    
                     http_response_code(201);
                     echo json_encode(array("message" => "Résidence créée avec succès"));
                 } else {
@@ -103,6 +112,10 @@ if ($uri[1] == 'api') {
                 $residence->end_date = $data->end_date;
                 
                 if($residence->update()) {
+                    // Synchroniser avec le fichier JSON
+                    $sync = new Sync($db);
+                    $sync->syncToJson();
+                    
                     http_response_code(200);
                     echo json_encode(array("message" => "Résidence mise à jour avec succès"));
                 } else {
@@ -120,6 +133,10 @@ if ($uri[1] == 'api') {
                 $residence->type = $uri[4];
                 
                 if($residence->delete()) {
+                    // Synchroniser avec le fichier JSON
+                    $sync = new Sync($db);
+                    $sync->syncToJson();
+                    
                     http_response_code(200);
                     echo json_encode(array("message" => "Résidence supprimée avec succès"));
                 } else {

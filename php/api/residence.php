@@ -6,6 +6,7 @@ header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
 include_once '../config/database.php';
+include_once 'sync.php';
 
 class Residence {
     private $conn;
@@ -57,6 +58,9 @@ class Residence {
         $stmt->bindParam(":end_date", $this->end_date);
 
         if($stmt->execute()) {
+            // Synchroniser après la création
+            $sync = new Sync($this->conn);
+            $sync->syncToJson();
             return true;
         }
         return false;
@@ -67,6 +71,14 @@ class Residence {
         $query = "SELECT * FROM " . $this->table_name . " WHERE user_id = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $this->user_id);
+        $stmt->execute();
+        return $stmt;
+    }
+
+    // Lire toutes les résidences
+    public function readAll() {
+        $query = "SELECT * FROM " . $this->table_name;
+        $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
     }
@@ -104,6 +116,9 @@ class Residence {
         $stmt->bindParam(":type", $this->type);
 
         if($stmt->execute()) {
+            // Synchroniser après la mise à jour
+            $sync = new Sync($this->conn);
+            $sync->syncToJson();
             return true;
         }
         return false;
@@ -117,6 +132,9 @@ class Residence {
         $stmt->bindParam(2, $this->type);
         
         if($stmt->execute()) {
+            // Synchroniser après la suppression
+            $sync = new Sync($this->conn);
+            $sync->syncToJson();
             return true;
         }
         return false;

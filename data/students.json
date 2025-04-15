@@ -1,99 +1,11 @@
 {
     "students": [
         {
-            "id": "BUT1RT001",
-            "name": "Jean Dupont",
-            "email": "jean.dupont@example.com",
-            "password": "hashed_password_1",
-            "main": {
-                "location": {
-                    "lat": 48.8566,
-                    "lon": 2.3522,
-                    "name": "Paris"
-                },
-                "startDate": "2024-01-01",
-                "endDate": "2025-12-31"
-            },
-            "secondary": {
-                "location": {
-                    "lat": 43.2965,
-                    "lon": 5.3698,
-                    "name": "Marseille"
-                },
-                "startDate": "2024-07-01",
-                "endDate": "2026-08-31"
-            },
-            "other": {
-                "location": {
-                    "lat": 45.7640,
-                    "lon": 4.8357,
-                    "name": "Lyon"
-                },
-                "startDate": "2024-01-01",
-                "endDate": "20245-12-31"
-            },
-            "role": "student"
-        },
-        {
-            "id": "BUT1RT002",
-            "name": "Marie Martin",
-            "email": "marie.martin@example.com",
-            "password": "hashed_password_2",
-            "main": {
-                "location": {
-                    "lat": 45.7640,
-                    "lon": 4.8357,
-                    "name": "Lyon"
-                },
-                "startDate": "2024-01-01",
-                "endDate": "2024-12-31"
-            },
-            "secondary": {
-                "location": {
-                    "lat": 43.6047,
-                    "lon": 1.4442,
-                    "name": "Toulouse"
-                },
-                "startDate": "2024-07-01",
-                "endDate": "2024-08-31"
-            },
-            "other": {},
-            "role": "student"
-        },
-        {
-            "id": "BUT1RT003",
-            "name": "Pierre Durand",
-            "email": "pierre.durand@example.com",
-            "password": "hashed_password_3",
-            "main": {
-                "location": {
-                    "lat": 43.7000,
-                    "lon": 7.2500,
-                    "name": "Nice"
-                },
-                "startDate": "2024-01-01",
-                "endDate": "2024-12-31"
-            },
-            "secondary": {
-                "location": {
-                    "lat": 48.1173,
-                    "lon": -1.6778,
-                    "name": "Rennes"
-                },
-                "startDate": "2024-07-01",
-                "endDate": "2024-08-31"
-            },
-            "other": {},
+            "id": "TOM001",
+            "name": "Tom",
+            "email": "tom@example.com",
             "role": "student"
         }
     ],
-    "admins": [
-        {
-            "id": "ADMIN001",
-            "name": "Admin Principal",
-            "email": "admin@example.com",
-            "password": "hashed_admin_password",
-            "role": "admin"
-        }
-    ]
+    "admins": []
 } 

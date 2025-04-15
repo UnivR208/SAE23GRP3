@@ -6,6 +6,7 @@ header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
 include_once '../config/database.php';
+include_once 'sync.php';
 
 class User {
     private $conn;
@@ -48,6 +49,9 @@ class User {
         $stmt->bindParam(":role", $this->role);
 
         if($stmt->execute()) {
+            // Synchroniser après la création
+            $sync = new Sync($this->conn);
+            $sync->syncToJson();
             return true;
         }
         return false;
@@ -58,6 +62,14 @@ class User {
         $query = "SELECT * FROM " . $this->table_name . " WHERE id = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $this->id);
+        $stmt->execute();
+        return $stmt;
+    }
+
+    // Lire tous les utilisateurs
+    public function readAll() {
+        $query = "SELECT * FROM " . $this->table_name;
+        $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
     }

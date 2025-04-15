@@ -1,8 +1,8 @@
 <?php
 class Database {
     private $host = "mysql_serv";
-    private $db_name = "nvincent3_05";
-    private $username = "nvincent3";
+    private $db_name = "nvincen3_05";
+    private $username = "nvincen3";
     private $password = "SQL7nathR&T";
     public $conn;
 
