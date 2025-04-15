@@ -43,12 +43,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
 
-                    // Stocker les coordonnées dans des attributs data- de l'input
+                    // Stocker les coordonnées dans des attributs data-
                     cityNameInput.dataset.lat = lat;
                     cityNameInput.dataset.lon = lon;
 
-                    // Afficher les coordonnées dans le champ
-                    cityNameInput.value = `GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                    // Essayer d'obtenir le nom de la ville pour l'affichage
+                    try {
+                        const response = await fetch(
+                            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+                        );
+                        const data = await response.json();
+                        const city = data.address.city || data.address.town || data.address.village || data.address.municipality;
+                        
+                        if (city) {
+                            cityNameInput.value = `${city} (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+                        } else {
+                            cityNameInput.value = `Position GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                        }
+                    } catch (error) {
+                        // En cas d'erreur de reverse geocoding, afficher juste les coordonnées
+                        cityNameInput.value = `Position GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                    }
+                    
                     showAddResidenceError('Position GPS trouvée', 'green');
                 } catch (error) {
                     console.error('Erreur de géolocalisation:', error);
@@ -115,12 +131,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Gestion de l'ajout d'une résidence
     addResidenceButton.addEventListener('click', async () => {
-        const cityName = cityNameInput.value.trim();
+        const cityInput = cityNameInput.value.trim();
         const startDate = startDateInput.value;
         const endDate = endDateInput.value;
         const residenceType = residenceTypeSelect.value;
 
-        if (!cityName || !startDate || !endDate) {
+        if (!cityInput || !startDate || !endDate) {
             showAddResidenceError('Veuillez remplir tous les champs');
             return;
         }
@@ -128,43 +144,83 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             let location;
 
-            // Si on a des coordonnées GPS stockées
+            // Si on a des coordonnées GPS stockées, les utiliser directement
             if (cityNameInput.dataset.lat && cityNameInput.dataset.lon) {
                 location = {
-                    name: cityName,
+                    name: cityInput,
                     lat: parseFloat(cityNameInput.dataset.lat),
                     lon: parseFloat(cityNameInput.dataset.lon)
                 };
             } else {
-                // Sinon, on utilise l'API Nominatim comme avant
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`);
-                const data = await response.json();
+                // Vérifier si l'entrée est au format "lat, lon"
+                const coordsMatch = cityInput.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
+                if (coordsMatch) {
+                    const lat = parseFloat(coordsMatch[1]);
+                    const lon = parseFloat(coordsMatch[2]);
+                    
+                    if (isValidCoordinates(lat, lon)) {
+                        try {
+                            // Essayer d'obtenir le nom de la ville
+                            const response = await fetch(
+                                `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+                            );
+                            const data = await response.json();
+                            const cityName = data.address.city || data.address.town || data.address.village || 
+                                          data.address.municipality || `Position GPS: ${lat}, ${lon}`;
+                            
+                            location = {
+                                name: cityName,
+                                lat: lat,
+                                lon: lon
+                            };
+                        } catch (error) {
+                            location = {
+                                name: `Position GPS: ${lat}, ${lon}`,
+                                lat: lat,
+                                lon: lon
+                            };
+                        }
+                    } else {
+                        showAddResidenceError('Coordonnées invalides');
+                        return;
+                    }
+                } else {
+                    // Chercher par nom de ville
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityInput)}&format=json&limit=1`);
+                    const data = await response.json();
 
-                if (data.length === 0) {
-                    showAddResidenceError('Ville non trouvée');
-                    return;
+                    if (data.length === 0) {
+                        showAddResidenceError('Ville non trouvée');
+                        return;
+                    }
+
+                    location = {
+                        name: cityInput,
+                        lat: parseFloat(data[0].lat),
+                        lon: parseFloat(data[0].lon)
+                    };
                 }
-
-                location = {
-                    name: cityName,
-                    lat: parseFloat(data[0].lat),
-                    lon: parseFloat(data[0].lon)
-                };
             }
 
-            // Mise à jour du fichier students.json
-            const studentResponse = await fetch('data/students.json');
-            const studentData = await studentResponse.json();
-            const student = studentData.students.find(s => s.id === userId);
+            // En mode développement, on stocke les données dans le sessionStorage
+            const studentData = JSON.parse(sessionStorage.getItem('studentData')) || {
+                students: [
+                    {
+                        id: sessionStorage.getItem('userId'),
+                        name: sessionStorage.getItem('userName'),
+                        email: sessionStorage.getItem('userEmail'),
+                        main: {},
+                        secondary: {},
+                        other: {}
+                    }
+                ]
+            };
+
+            const student = studentData.students.find(s => s.id === sessionStorage.getItem('userId'));
 
             if (!student) {
                 showAddResidenceError('Étudiant non trouvé');
                 return;
-            }
-
-            // Initialiser l'objet 'other' s'il n'existe pas
-            if (residenceType === 'other' && !student.other) {
-                student.other = {};
             }
 
             // Mise à jour de la résidence
@@ -174,40 +230,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 endDate: endDate
             };
 
-            // Sauvegarde des modifications
-            try {
-                const saveResponse = await fetch('data/students.json', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(studentData)
-                });
+            // Sauvegarde dans le sessionStorage
+            sessionStorage.setItem('studentData', JSON.stringify(studentData));
+            
+            // Recharger les données
+            loadStudentData(sessionStorage.getItem('userId'));
+            
+            // Réinitialiser le formulaire
+            cityNameInput.value = '';
+            cityNameInput.dataset.lat = '';
+            cityNameInput.dataset.lon = '';
+            startDateInput.value = '';
+            endDateInput.value = '';
+            
+            showAddResidenceError('Résidence ajoutée avec succès', 'green');
 
-                if (!saveResponse.ok) {
-                    throw new Error('Erreur lors de la sauvegarde');
-                }
-
-                // Recharger les données
-                loadStudentData(userId);
-                
-                // Réinitialiser le formulaire
-                cityNameInput.value = '';
-                cityNameInput.dataset.lat = '';
-                cityNameInput.dataset.lon = '';
-                startDateInput.value = '';
-                endDateInput.value = '';
-                
-                showAddResidenceError('Résidence ajoutée avec succès', 'green');
-            } catch (error) {
-                console.error('Erreur lors de la sauvegarde:', error);
-                showAddResidenceError('Erreur lors de la sauvegarde des données');
-            }
         } catch (error) {
-            console.error('Erreur lors de la conversion des coordonnées:', error);
-            showAddResidenceError('Erreur lors de la recherche de la ville');
+            console.error('Erreur lors de l\'ajout de la résidence:', error);
+            showAddResidenceError('Erreur lors de l\'ajout de la résidence');
         }
     });
+
+    // Fonction pour valider les coordonnées
+    function isValidCoordinates(lat, lon) {
+        return !isNaN(lat) && !isNaN(lon) && 
+               lat >= -90 && lat <= 90 && 
+               lon >= -180 && lon <= 180;
+    }
 
     function showAddResidenceError(message, color = 'red') {
         addResidenceError.style.color = color;
@@ -236,33 +285,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadStudentData(studentId) {
         try {
-            const response = await fetch('data/students.json');
-            const data = await response.json();
-            const student = data.students.find(s => s.id === studentId);
+            // Récupérer les données du sessionStorage
+            const studentData = JSON.parse(sessionStorage.getItem('studentData'));
+            const student = studentData?.students.find(s => s.id === studentId);
 
             if (student) {
                 // Vérifier la validité des périodes d'étude
-                const mainStageStatus = checkDateValidity(student.main.startDate, student.main.endDate);
-                const secondaryStageStatus = checkDateValidity(student.secondary.startDate, student.secondary.endDate);
-                const otherStageStatus = student.other ? checkDateValidity(student.other.startDate, student.other.endDate) : { isValid: false, message: "Pas de résidence alternative" };
+                const mainStageStatus = student.main.startDate ? checkDateValidity(student.main.startDate, student.main.endDate) : { isValid: false, message: "Pas de résidence principale" };
+                const secondaryStageStatus = student.secondary.startDate ? checkDateValidity(student.secondary.startDate, student.secondary.endDate) : { isValid: false, message: "Pas de résidence secondaire" };
+                const otherStageStatus = student.other.startDate ? checkDateValidity(student.other.startDate, student.other.endDate) : { isValid: false, message: "Pas de résidence alternative" };
 
                 studentInfo.innerHTML = `
                     <p>Nom : ${student.name}</p>
                     <p>Email : ${student.email}</p>
                     <div style="margin: 10px 0;">
-                        <p><strong>Résidence Principale (${student.main.location.name})</strong></p>
+                        <p><strong>Résidence Principale ${student.main.location ? `(${student.main.location.name})` : ''}</strong></p>
                         <p style="color: ${mainStageStatus.isValid ? 'green' : 'red'}">
                             ${mainStageStatus.message}
                         </p>
                     </div>
                     <div style="margin: 10px 0;">
-                        <p><strong>Résidence Secondaire (${student.secondary.location.name})</strong></p>
+                        <p><strong>Résidence Secondaire ${student.secondary.location ? `(${student.secondary.location.name})` : ''}</strong></p>
                         <p style="color: ${secondaryStageStatus.isValid ? 'green' : 'red'}">
                             ${secondaryStageStatus.message}
                         </p>
                     </div>
                     <div style="margin: 10px 0;">
-                        <p><strong>Autre Résidence ${student.other ? `(${student.other.location.name})` : ''}</strong></p>
+                        <p><strong>Autre Résidence ${student.other.location ? `(${student.other.location.name})` : ''}</strong></p>
                         <p style="color: ${otherStageStatus.isValid ? 'green' : 'red'}">
                             ${otherStageStatus.message}
                         </p>
