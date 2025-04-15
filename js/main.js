@@ -34,14 +34,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadStudentsData() {
     try {
         // Essayer d'abord de charger depuis le JSON
-        const jsonResponse = await fetch('data/students.json');
+        const jsonResponse = await fetch('../data/students.json');
         if (jsonResponse.ok) {
             studentsData = await jsonResponse.json();
             return;
         }
 
         // Si le JSON n'existe pas, essayer le CSV
-        const csvResponse = await fetch('data/students.csv');
+        const csvResponse = await fetch('../data/students.csv');
         if (csvResponse.ok) {
             const csvText = await csvResponse.text();
             studentsData = parseCSV(csvText);
@@ -82,10 +82,10 @@ function parseCSV(csvText) {
 
 async function saveStudentsData() {
     try {
-        const response = await fetch('data/students.json', {
+        const response = await fetch('../data/students.json', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': '/application/json',
             },
             body: JSON.stringify(studentsData)
         });

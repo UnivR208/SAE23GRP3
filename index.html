@@ -4,65 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Climatomètre BUT1 R&T</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/weather.css">
 </head>
 <body>
-    <div class="cloud cloud1"></div>
-    <div class="cloud cloud2"></div>
-    <div class="cloud cloud3"></div>
-    <div class="cloud cloud4"></div>
+    <div>
+        <h1>Climatomètre BUT1 R&T</h1>
+        <p>Suivi des climats des résidences étudiantes</p>
 
-    <div class="container">
-        <header class="title">
-            <h1>Climatomètre <span class="highlight">BUT1 R&T</span></h1>
-            <p class="auteurs">Suivi des climats des résidences étudiantes</p>
-        </header>
+        <div>
+            <h2>Sélection de l'étudiant</h2>
+            <div>
+                <input type="text" id="student-search" placeholder="Rechercher un étudiant...">
+                <button id="search-button">Rechercher</button>
+            </div>
+            <div id="student-info">
+                <!-- Les informations de l'étudiant seront affichées ici -->
+            </div>
+        </div>
 
-        <main>
-            <section class="student-selector">
-                <h2>Sélection de l'étudiant</h2>
-                <div class="search-box">
-                    <input type="text" id="student-search" placeholder="Rechercher un étudiant...">
-                    <button id="search-button">Rechercher</button>
+        <div>
+            <h2>Résidences</h2>
+            <button id="main-residence">Résidence Principale</button>
+            <button id="secondary-residence">Résidence Secondaire</button>
+
+            <div id="weather-info">
+                <h3>Météo Actuelle</h3>
+                <div id="current-weather">
+                    <!-- Les informations météo seront affichées ici -->
                 </div>
-            </section>
-
-            <section class="residence-display">
-                <div class="residence-selector">
-                    <button class="residence-button active" data-residence="main">Résidence Principale</button>
-                    <button class="residence-button" data-residence="secondary">Résidence Secondaire</button>
+                <div id="forecast">
+                    <!-- Les prévisions seront affichées ici -->
                 </div>
+            </div>
+        </div>
 
-                <div class="weather-display">
-                    <div class="current-weather">
-                        <h3>Météo Actuelle</h3>
-                        <div class="weather-info">
-                            <!-- Les informations météo seront injectées ici par JavaScript -->
-                        </div>
-                    </div>
-
-                    <div class="daily-forecast">
-                        <!-- Les prévisions seront injectées ici par JavaScript -->
-                    </div>
-                </div>
-            </section>
-
-            <section class="group-climate">
-                <h2>Climatomètre Collectif</h2>
-                <div class="climate-stats">
-                    <!-- Les statistiques du groupe seront injectées ici -->
-                </div>
-            </section>
-        </main>
-
-        <footer>
-            <p>© 2024 BUT1 R&T - Climatomètre</p>
-        </footer>
+        <div>
+            <h2>Climatomètre Collectif</h2>
+            <div id="climate-stats">
+                <!-- Les statistiques seront affichées ici -->
+            </div>
+        </div>
     </div>
 
-    <script src="scripts/weather.js"></script>
-    <script src="scripts/main.js"></script>
     <script src="scripts/redirect.js"></script>
+    <script src="scripts/main.js"></script>
+    <script src="scripts/weather.js"></script>
 </body>
 </html> 

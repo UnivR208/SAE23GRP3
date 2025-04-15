@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Vérifier si l'utilisateur est connecté
-    const currentUser = sessionStorage.getItem('currentUser');
-    if (!currentUser) {
+    const isLoggedIn = sessionStorage.getItem('loggedIn');
+    if (!isLoggedIn) {
         // Rediriger vers la page de login
         window.location.href = 'login.html';
     }

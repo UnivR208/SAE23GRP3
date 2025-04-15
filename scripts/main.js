@@ -1,34 +1,41 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const weatherManager = new WeatherManager();
-    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-    
     // Éléments du DOM
     const studentSearch = document.getElementById('student-search');
     const searchButton = document.getElementById('search-button');
-    const residenceButtons = document.querySelectorAll('.residence-button');
-    const weatherInfo = document.querySelector('.weather-info');
-    const dailyForecast = document.querySelector('.daily-forecast');
+    const mainResidence = document.getElementById('main-residence');
+    const secondaryResidence = document.getElementById('secondary-residence');
+    const studentInfo = document.getElementById('student-info');
+    const currentWeather = document.getElementById('current-weather');
+    const forecast = document.getElementById('forecast');
 
-    // Chargement initial des données de l'utilisateur connecté
-    if (currentUser) {
-        loadStudentData(currentUser.id);
+    // Récupérer les informations de l'utilisateur connecté
+    const userId = sessionStorage.getItem('userId');
+    const userName = sessionStorage.getItem('userName');
+
+    if (userId && userName) {
+        studentInfo.innerHTML = `<p>Étudiant connecté : ${userName} (${userId})</p>`;
+        loadStudentData(userId);
     }
 
     // Gestion de la recherche d'étudiants
-    searchButton.addEventListener('click', async () => {
+    searchButton.addEventListener('click', () => {
         const searchTerm = studentSearch.value.trim();
         if (searchTerm) {
-            await loadStudentData(searchTerm);
+            loadStudentData(searchTerm);
         }
     });
 
     // Gestion du changement de résidence
-    residenceButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            residenceButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            updateWeatherDisplay(button.dataset.residence);
-        });
+    mainResidence.addEventListener('click', () => {
+        mainResidence.disabled = true;
+        secondaryResidence.disabled = false;
+        loadResidenceData('main');
+    });
+
+    secondaryResidence.addEventListener('click', () => {
+        mainResidence.disabled = false;
+        secondaryResidence.disabled = true;
+        loadResidenceData('secondary');
     });
 
     async function loadStudentData(studentId) {
@@ -38,7 +45,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const student = data.students.find(s => s.id === studentId);
 
             if (student) {
-                updateWeatherDisplay('main', student.main.location);
+                studentInfo.innerHTML = `
+                    <p>Nom : ${student.name}</p>
+                    <p>Email : ${student.email}</p>
+                    <p>Résidence principale : ${student.main.location.name}</p>
+                    <p>Résidence secondaire : ${student.secondary.location.name}</p>
+                `;
+                loadResidenceData('main', student);
             } else {
                 showError('Étudiant non trouvé');
             }
@@ -48,81 +61,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function updateWeatherDisplay(residenceType, location) {
+    async function loadResidenceData(residenceType, studentData) {
         try {
-            let currentLocation = location;
-            
-            // If location is not provided, get it from the current student data
-            if (!currentLocation) {
-                const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-                if (!currentUser) {
-                    showError('Aucun étudiant sélectionné');
-                    return;
-                }
-                
+            if (!studentData) {
                 const response = await fetch('data/students.json');
                 const data = await response.json();
-                const student = data.students.find(s => s.id === currentUser.id);
-                
-                if (!student) {
-                    showError('Étudiant non trouvé');
-                    return;
-                }
-                
-                if (!student[residenceType] || !student[residenceType].location) {
-                    showError(`Aucune résidence ${residenceType} trouvée pour cet étudiant`);
-                    return;
-                }
-                
-                currentLocation = student[residenceType].location;
+                studentData = data.students.find(s => s.id === userId);
             }
 
-            if (!currentLocation || !currentLocation.lat || !currentLocation.lon) {
-                showError('Coordonnées de localisation invalides');
+            if (!studentData) {
+                showError('Données étudiant non trouvées');
                 return;
             }
 
-            const weatherData = await weatherManager.getWeather(currentLocation.lat, currentLocation.lon);
-            
-            // Mise à jour de la météo actuelle
-            const current = weatherData.current;
-            weatherInfo.innerHTML = `
-                <div class="weather-card">
-                    <div class="weather-icon">${weatherManager.getWeatherIcon(current.weather_code)}</div>
-                    <div class="temperature">${weatherManager.formatTemperature(current.temperature_2m)}</div>
-                    <div class="details">
-                        <p>Humidité: ${current.relative_humidity_2m}%</p>
-                        <p>Précipitations: ${current.precipitation}mm</p>
-                        <p>Vent: ${current.wind_speed_10m} km/h</p>
-                    </div>
-                </div>
+            const location = studentData[residenceType].location;
+            currentWeather.innerHTML = `
+                <p>Ville : ${location.name}</p>
+                <p>Latitude : ${location.lat}</p>
+                <p>Longitude : ${location.lon}</p>
             `;
 
-            // Mise à jour des prévisions
-            dailyForecast.innerHTML = weatherData.forecast.time.map((date, index) => `
-                <div class="forecast-card">
-                    <div class="date">${weatherManager.formatDate(date)}</div>
-                    <div class="weather-icon">${weatherManager.getWeatherIcon(weatherData.forecast.weather_code[index])}</div>
-                    <div class="temperatures">
-                        <span class="max">${weatherManager.formatTemperature(weatherData.forecast.temperature_2m_max[index])}</span>
-                        <span class="min">${weatherManager.formatTemperature(weatherData.forecast.temperature_2m_min[index])}</span>
-                    </div>
-                    <div class="precipitation">
-                        Pluie: ${weatherData.forecast.precipitation_probability_max[index]}%
-                    </div>
-                </div>
-            `).join('');
+            // Ici, vous pouvez ajouter l'appel à l'API météo si nécessaire
         } catch (error) {
-            console.error('Erreur lors de la mise à jour de la météo:', error);
-            showError('Erreur lors de la mise à jour de la météo');
+            console.error('Erreur lors du chargement des données de résidence:', error);
+            showError('Erreur lors du chargement des données de résidence');
         }
     }
 
     function showError(message) {
         const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
+        errorDiv.style.color = 'red';
         errorDiv.textContent = message;
-        document.querySelector('.weather-display').appendChild(errorDiv);
+        studentInfo.appendChild(errorDiv);
         setTimeout(() => errorDiv.remove(), 3000);
     }
 }); 
