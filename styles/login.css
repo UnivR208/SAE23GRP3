@@ -1,0 +1,154 @@
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 2rem;
+}
+
+.login-box {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.login-box h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.login-button {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.form-links {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.form-links a {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.form-links a:hover {
+    color: #2980b9;
+}
+
+.error-message {
+    color: #e74c3c;
+    text-align: center;
+    margin-top: 1rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: rgba(231, 76, 60, 0.1);
+    display: none;
+}
+
+/* Animation des nuages */
+.cloud {
+    position: fixed;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: float 20s infinite linear;
+    z-index: -1;
+}
+
+.cloud1 {
+    width: 100px;
+    height: 50px;
+    top: 10%;
+    left: 10%;
+    animation-duration: 25s;
+}
+
+.cloud2 {
+    width: 150px;
+    height: 75px;
+    top: 20%;
+    right: 10%;
+    animation-duration: 30s;
+}
+
+.cloud3 {
+    width: 80px;
+    height: 40px;
+    top: 30%;
+    left: 20%;
+    animation-duration: 20s;
+}
+
+.cloud4 {
+    width: 120px;
+    height: 60px;
+    top: 40%;
+    right: 20%;
+    animation-duration: 35s;
+}
+
+@keyframes float {
+    0% {
+        transform: translateX(0) translateY(0);
+    }
+    25% {
+        transform: translateX(50px) translateY(-20px);
+    }
+    50% {
+        transform: translateX(100px) translateY(0);
+    }
+    75% {
+        transform: translateX(50px) translateY(20px);
+    }
+    100% {
+        transform: translateX(0) translateY(0);
+    }
+} 

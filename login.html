@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Climatomètre BUT1 R&T</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/login.css">
+</head>
+<body>
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    <div class="cloud cloud3"></div>
+    <div class="cloud cloud4"></div>
+
+    <div class="container">
+        <header class="title">
+            <h1>Climatomètre <span class="highlight">BUT1 R&T</span></h1>
+            <p class="auteurs">Suivi des climats des résidences étudiantes</p>
+        </header>
+
+        <main class="login-container">
+            <div class="login-box">
+                <h2>Connexion</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="identifier">Email ou ID étudiant</label>
+                        <input type="text" id="identifier" name="identifier" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Mot de passe</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="login-button">Se connecter</button>
+                    </div>
+                    <div class="form-links">
+                        <a href="#" id="forgot-password">Mot de passe oublié ?</a>
+                    </div>
+                </form>
+                <div id="errorMessage" class="error-message"></div>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2024 BUT1 R&T - Climatomètre</p>
+        </footer>
+    </div>
+
+    <script src="scripts/auth.js"></script>
+</body>
+</html> 
