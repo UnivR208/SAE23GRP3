@@ -148,7 +148,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             let location;
-
             // Si on a des coordonnées GPS stockées, les utiliser directement
             if (cityNameInput.dataset.lat && cityNameInput.dataset.lon) {
                 location = {
@@ -157,111 +156,45 @@ document.addEventListener('DOMContentLoaded', function() {
                     lon: parseFloat(cityNameInput.dataset.lon)
                 };
             } else {
-                // Vérifier si l'entrée est au format "lat, lon"
-                const coordsMatch = cityInput.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
-                if (coordsMatch) {
-                    const lat = parseFloat(coordsMatch[1]);
-                    const lon = parseFloat(coordsMatch[2]);
-                    
-                    if (isValidCoordinates(lat, lon)) {
-                        try {
-                            // Essayer d'obtenir le nom de la ville
-                            const response = await fetch(
-                                `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
-                            );
-                            const data = await response.json();
-                            const cityName = data.address.city || data.address.town || data.address.village || 
-                                          data.address.municipality || `Position GPS: ${lat}, ${lon}`;
-                            
-                            location = {
-                                name: cityName,
-                                lat: lat,
-                                lon: lon
-                            };
-                        } catch (error) {
-                            location = {
-                                name: `Position GPS: ${lat}, ${lon}`,
-                                lat: lat,
-                                lon: lon
-                            };
-                        }
-                    } else {
-                        showAddResidenceError('Coordonnées invalides');
-                        return;
-                    }
-                } else {
-                    // Chercher par nom de ville
-                    const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityInput)}&format=json&limit=1`);
-                    const data = await response.json();
+                // Chercher par nom de ville
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityInput)}&format=json&limit=1`);
+                const data = await response.json();
 
-                    if (data.length === 0) {
-                        showAddResidenceError('Ville non trouvée');
-                        return;
-                    }
-
-                    location = {
-                        name: cityInput,
-                        lat: parseFloat(data[0].lat),
-                        lon: parseFloat(data[0].lon)
-                    };
+                if (data.length === 0) {
+                    showAddResidenceError('Ville non trouvée');
+                    return;
                 }
-            }
 
-            // En mode développement, on stocke les données dans le sessionStorage
-            const studentData = JSON.parse(sessionStorage.getItem('studentData')) || {
-                students: [
-                    {
-                        id: sessionStorage.getItem('userId'),
-                        name: sessionStorage.getItem('userName'),
-                        email: sessionStorage.getItem('userEmail'),
-                        main: {},
-                        secondary: {},
-                        other: {}
-                    }
-                ]
-            };
-
-            const student = studentData.students.find(s => s.id === sessionStorage.getItem('userId'));
-
-            if (!student) {
-                showAddResidenceError('Étudiant non trouvé');
-                return;
+                location = {
+                    name: cityInput,
+                    lat: parseFloat(data[0].lat),
+                    lon: parseFloat(data[0].lon)
+                };
             }
 
             // Envoyer la requête à l'API
-            try {
-                const response = await fetch('../php/sync.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        user_id: sessionStorage.getItem('userId'),
-                        type: residenceType,
-                        city_name: location.name,
-                        latitude: location.lat,
-                        longitude: location.lon,
-                        start_date: startDate,
-                        end_date: endDate
-                    })
-                });
+            const apiResponse = await fetch('../php/sync.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'add',
+                    user_id: sessionStorage.getItem('userId'),
+                    type: residenceType,
+                    city_name: location.name,
+                    latitude: location.lat,
+                    longitude: location.lon,
+                    start_date: startDate,
+                    end_date: endDate
+                })
+            });
 
-                if (!response.ok) {
-                    throw new Error('Erreur lors de l\'ajout de la résidence');
-                }
-
-                // Mise à jour de la résidence dans le sessionStorage
-                student[residenceType] = {
-                    location: location,
-                    startDate: startDate,
-                    endDate: endDate
-                };
-
-                // Sauvegarde dans le sessionStorage
-                sessionStorage.setItem('studentData', JSON.stringify(studentData));
-                
-                // Recharger les données
-                loadStudentData(sessionStorage.getItem('userId'));
+            const result = await apiResponse.json();
+            
+            if (result.success) {
+                // Recharger les données de l'étudiant
+                await loadStudentData(sessionStorage.getItem('userId'));
                 
                 // Réinitialiser le formulaire
                 cityNameInput.value = '';
@@ -271,14 +204,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 endDateInput.value = '';
                 
                 showAddResidenceError('Résidence ajoutée avec succès', 'green');
-            } catch (error) {
-                console.error('Erreur:', error);
-                showAddResidenceError('Erreur lors de l\'ajout de la résidence');
+            } else {
+                throw new Error(result.message || 'Erreur lors de l\'ajout de la résidence');
             }
-
         } catch (error) {
             console.error('Erreur lors de l\'ajout de la résidence:', error);
-            showAddResidenceError('Erreur lors de l\'ajout de la résidence');
+            showAddResidenceError(error.message || 'Erreur lors de l\'ajout de la résidence');
         }
     });
 
@@ -298,9 +229,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function checkDateValidity(startDate, endDate) {
+        if (!startDate || !endDate) {
+            return { isValid: false, message: "Dates non définies" };
+        }
+
         const now = new Date();
         const start = new Date(startDate);
         const end = new Date(endDate);
+        
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            return { isValid: false, message: "Format de date invalide" };
+        }
         
         if (now < start) {
             return { isValid: false, message: "La période d'étude n'a pas encore commencé" };
@@ -335,28 +274,50 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fonction pour supprimer une résidence
     async function deleteResidence(residenceType) {
         try {
-            const studentData = JSON.parse(sessionStorage.getItem('studentData'));
-            const student = studentData.students.find(s => s.id === sessionStorage.getItem('userId'));
+            const userId = sessionStorage.getItem('userId');
+            if (!userId) {
+                throw new Error('Utilisateur non connecté');
+            }
 
-            if (student) {
-                // Réinitialiser la résidence
-                student[residenceType] = {};
-                
-                // Sauvegarder les modifications
-                await saveToJSON(studentData);
-                
-                // Recharger les données
-                loadStudentData(sessionStorage.getItem('userId'));
+            // Demander confirmation avant de supprimer
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette résidence ?')) {
+                return;
+            }
+
+            const response = await fetch('../php/sync.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'delete',
+                    user_id: userId,
+                    type: residenceType
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Recharger les données de l'étudiant
+                await loadStudentData(userId);
                 showAddResidenceError('Résidence supprimée avec succès', 'green');
+            } else {
+                throw new Error(result.message || 'Erreur lors de la suppression');
             }
         } catch (error) {
             console.error('Erreur lors de la suppression:', error);
-            showAddResidenceError('Erreur lors de la suppression de la résidence');
+            showAddResidenceError(error.message || 'Erreur lors de la suppression de la résidence');
         }
     }
 
     // Fonction pour mettre à jour l'interface d'ajout
     function updateAddInterface(student) {
+        // Initialiser les résidences si elles n'existent pas
+        if (!student.main) student.main = {};
+        if (!student.secondary) student.secondary = {};
+        if (!student.other) student.other = {};
+
         const residenceCount = [student.main, student.secondary, student.other]
             .filter(r => r && r.startDate).length;
 
@@ -425,8 +386,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Vérifier la validité des périodes d'étude
-                const mainStageStatus = student.main.startDate ? checkDateValidity(student.main.startDate, student.main.endDate) : { isValid: false, message: "Pas de résidence principale" };
-                const secondaryStageStatus = student.secondary.startDate ? checkDateValidity(student.secondary.startDate, student.secondary.endDate) : { isValid: false, message: "Pas de résidence secondaire" };
+                const mainStageStatus = student.main && student.main.startDate ? checkDateValidity(student.main.startDate, student.main.endDate) : { isValid: false, message: "Pas de résidence principale" };
+                const secondaryStageStatus = student.secondary && student.secondary.startDate ? checkDateValidity(student.secondary.startDate, student.secondary.endDate) : { isValid: false, message: "Pas de résidence secondaire" };
                 const otherStageStatus = student.other && student.other.startDate ? checkDateValidity(student.other.startDate, student.other.endDate) : { isValid: false, message: "Pas de résidence alternative" };
 
                 // Fonction pour formater les dates
@@ -446,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 studentInfo.innerHTML = `
                     <p>Nom : ${student.name}</p>
                     <p>Email : ${student.email}</p>
-                    ${student.main.startDate ? `
+                    ${student.main && student.main.startDate ? `
                         <div style="margin: 10px 0;">
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <p><strong>Résidence Principale ${student.main.location ? `(${student.main.location.name})` : ''}</strong></p>
@@ -460,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </p>
                         </div>
                     ` : ''}
-                    ${student.secondary.startDate ? `
+                    ${student.secondary && student.secondary.startDate ? `
                         <div style="margin: 10px 0;">
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <p><strong>Résidence Secondaire ${student.secondary.location ? `(${student.secondary.location.name})` : ''}</strong></p>
