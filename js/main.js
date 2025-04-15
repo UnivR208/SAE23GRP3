@@ -1,5 +1,6 @@
 // Configuration
 const WEATHER_MANAGER = new WeatherManager();
+const BASE_URL = 'https://rt-projet.pu-pm.univ-fcomte.fr/users/tdavid';
 
 // État de l'application
 let currentStudent = null;
@@ -33,26 +34,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Fonctions principales
 async function loadStudentsData() {
     try {
-        // Essayer d'abord de charger depuis le JSON
-        const jsonResponse = await fetch('data/students.json');
-        if (jsonResponse.ok) {
-            studentsData = await jsonResponse.json();
-            return;
+        const response = await fetch(`${BASE_URL}/data/students.json`);
+        if (!response.ok) {
+            throw new Error('Erreur lors du chargement des données');
         }
-
-        // Si le JSON n'existe pas, essayer le CSV
-        const csvResponse = await fetch('data/students.csv');
-        if (csvResponse.ok) {
-            const csvText = await csvResponse.text();
-            studentsData = parseCSV(csvText);
-            // Sauvegarder en JSON pour la prochaine fois
-            saveStudentsData();
-        } else {
-            throw new Error('Aucune donnée d\'étudiants trouvée');
-        }
+        const data = await response.json();
+        studentsData = data;
+        updateStudentsList();
+        
+        // Synchroniser avec la base de données
+        await syncWithDatabase();
     } catch (error) {
-        console.error('Erreur lors du chargement des données:', error);
-        throw error;
+        console.error('Erreur:', error);
+        showError('Erreur lors du chargement des données');
     }
 }
 
@@ -82,19 +76,44 @@ function parseCSV(csvText) {
 
 async function saveStudentsData() {
     try {
-        const response = await fetch('data/students.json', {
+        // Sauvegarder dans le fichier JSON via PHP
+        const response = await fetch(`${BASE_URL}/php/save_json.php`, {
             method: 'POST',
             headers: {
-                'Content-Type': '/application/json',
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(studentsData)
         });
         
         if (!response.ok) {
-            throw new Error('Erreur lors de la sauvegarde des données');
+            throw new Error('Erreur lors de la sauvegarde');
+        }
+
+        // Synchroniser avec la base de données
+        await syncWithDatabase();
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors de la sauvegarde des données');
+    }
+}
+
+// Fonction pour synchroniser avec la base de données
+async function syncWithDatabase() {
+    try {
+        const response = await fetch(`${BASE_URL}/php/sync.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(studentsData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erreur lors de la synchronisation avec la base de données');
         }
     } catch (error) {
-        console.error('Erreur lors de la sauvegarde des données:', error);
+        console.error('Erreur de synchronisation:', error);
+        showError('Erreur lors de la synchronisation avec la base de données');
     }
 }
 
@@ -112,6 +131,8 @@ async function handleSearch() {
             currentStudent = student;
             updateStudentDisplay();
             updateWeatherDisplay();
+            // Synchroniser après la recherche
+            await syncWithDatabase();
         } else {
             showError('Étudiant non trouvé');
         }
@@ -141,6 +162,8 @@ async function updateWeatherDisplay() {
         const weatherData = await WEATHER_MANAGER.getWeatherData(residence.location);
         updateCurrentWeather(weatherData);
         updateForecast(weatherData);
+        // Synchroniser après la mise à jour de la météo
+        await syncWithDatabase();
     } catch (error) {
         showError('Erreur lors de la récupération des données météo');
         console.error(error);
@@ -215,4 +238,4 @@ function showError(message) {
     container.insertBefore(errorDiv, container.firstChild);
     
     setTimeout(() => errorDiv.remove(), 5000);
-} 
+}

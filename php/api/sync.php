@@ -91,11 +91,11 @@ class Sync {
                 'admins' => $admins
             ];
 
-            error_log("Données à écrire: " . json_encode($jsonData));
+            print_r("Données à écrire: " . json_encode($jsonData, JSON_PRETTY_PRINT));
 
             // Écrire dans le fichier JSON
             $result = file_put_contents($this->json_file, json_encode($jsonData, JSON_PRETTY_PRINT));
-            if ($result === false) {
+            if ($result == false) {
                 error_log("Erreur lors de l'écriture du fichier JSON");
                 error_log("Dernière erreur PHP: " . error_get_last()['message']);
                 return false;

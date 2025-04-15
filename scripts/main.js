@@ -228,27 +228,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Mise à jour de la résidence
-            student[residenceType] = {
-                location: location,
-                startDate: startDate,
-                endDate: endDate
-            };
+            // Envoyer la requête à l'API
+            try {
+                const response = await fetch('../php/sync.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: sessionStorage.getItem('userId'),
+                        type: residenceType,
+                        city_name: location.name,
+                        latitude: location.lat,
+                        longitude: location.lon,
+                        start_date: startDate,
+                        end_date: endDate
+                    })
+                });
 
-            // Sauvegarde dans le sessionStorage
-            sessionStorage.setItem('studentData', JSON.stringify(studentData));
-            
-            // Recharger les données
-            loadStudentData(sessionStorage.getItem('userId'));
-            
-            // Réinitialiser le formulaire
-            cityNameInput.value = '';
-            cityNameInput.dataset.lat = '';
-            cityNameInput.dataset.lon = '';
-            startDateInput.value = '';
-            endDateInput.value = '';
-            
-            showAddResidenceError('Résidence ajoutée avec succès', 'green');
+                if (!response.ok) {
+                    throw new Error('Erreur lors de l\'ajout de la résidence');
+                }
+
+                // Mise à jour de la résidence dans le sessionStorage
+                student[residenceType] = {
+                    location: location,
+                    startDate: startDate,
+                    endDate: endDate
+                };
+
+                // Sauvegarde dans le sessionStorage
+                sessionStorage.setItem('studentData', JSON.stringify(studentData));
+                
+                // Recharger les données
+                loadStudentData(sessionStorage.getItem('userId'));
+                
+                // Réinitialiser le formulaire
+                cityNameInput.value = '';
+                cityNameInput.dataset.lat = '';
+                cityNameInput.dataset.lon = '';
+                startDateInput.value = '';
+                endDateInput.value = '';
+                
+                showAddResidenceError('Résidence ajoutée avec succès', 'green');
+            } catch (error) {
+                console.error('Erreur:', error);
+                showAddResidenceError('Erreur lors de l\'ajout de la résidence');
+            }
 
         } catch (error) {
             console.error('Erreur lors de l\'ajout de la résidence:', error);
@@ -358,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Essayer d'abord de charger depuis le fichier JSON
             let studentData;
             try {
-                const response = await fetch('data/students.json');
+                const response = await fetch('../data/students.json');
                 studentData = await response.json();
             } catch (error) {
                 // Si échec, utiliser le sessionStorage
@@ -372,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateAddInterface(student);
 
                 // Vérifier si l'étudiant a des résidences
-                const hasResidences = student.main.startDate || student.secondary.startDate || student.other.startDate;
+                const hasResidences = student.main.startDate || student.secondary.startDate || (student.other && student.other.startDate);
 
                 if (!hasResidences) {
                     studentInfo.innerHTML = `
@@ -401,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Vérifier la validité des périodes d'étude
                 const mainStageStatus = student.main.startDate ? checkDateValidity(student.main.startDate, student.main.endDate) : { isValid: false, message: "Pas de résidence principale" };
                 const secondaryStageStatus = student.secondary.startDate ? checkDateValidity(student.secondary.startDate, student.secondary.endDate) : { isValid: false, message: "Pas de résidence secondaire" };
-                const otherStageStatus = student.other.startDate ? checkDateValidity(student.other.startDate, student.other.endDate) : { isValid: false, message: "Pas de résidence alternative" };
+                const otherStageStatus = student.other && student.other.startDate ? checkDateValidity(student.other.startDate, student.other.endDate) : { isValid: false, message: "Pas de résidence alternative" };
 
                 // Fonction pour formater les dates
                 const formatDate = (dateStr) => {
@@ -448,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </p>
                         </div>
                     ` : ''}
-                    ${student.other.startDate ? `
+                    ${student.other && student.other.startDate ? `
                         <div style="margin: 10px 0;">
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <p><strong>Autre Résidence ${student.other.location ? `(${student.other.location.name})` : ''}</strong></p>
@@ -492,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadResidenceData(residenceType, studentData) {
         try {
             if (!studentData) {
-                const response = await fetch('data/students.json');
+                const response = await fetch('../data/students.json');
                 const data = await response.json();
                 studentData = data.students.find(s => s.id === userId);
             }

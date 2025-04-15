@@ -27,7 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch('/users/tdavid/data/students.json');
+            // Synchroniser avec la base de données avant la vérification
+            const syncResponse = await fetch('http://localhost/php/sync.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!syncResponse.ok) {
+                throw new Error('Erreur lors de la synchronisation');
+            }
+
+            const response = await fetch('http://localhost/data/students.json');
             if (!response.ok) {
                 throw new Error('Erreur lors du chargement des données');
             }
@@ -46,6 +58,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionStorage.setItem('userName', student.name);
                 sessionStorage.setItem('userEmail', student.email);
                 sessionStorage.setItem('userRole', 'student');
+                
+                // Synchroniser après la connexion
+                await fetch('http://localhost/php/sync.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
                 window.location.href = 'index.html';
                 return;
             }
@@ -62,6 +83,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionStorage.setItem('userName', admin.name);
                 sessionStorage.setItem('userEmail', admin.email);
                 sessionStorage.setItem('userRole', 'admin');
+                
+                // Synchroniser après la connexion
+                await fetch('http://localhost/php/sync.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
                 window.location.href = 'admin.html';
                 return;
             }

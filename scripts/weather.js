@@ -23,6 +23,18 @@ class WeatherManager {
             this.forecast = forecastData.daily;
             this.currentLocation = { latitude, longitude };
 
+            // Synchroniser après la mise à jour des données météo
+            try {
+                await fetch('http://localhost/php/sync.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } catch (syncError) {
+                console.error('Erreur lors de la synchronisation:', syncError);
+            }
+
             return {
                 current: this.currentWeather,
                 forecast: this.forecast

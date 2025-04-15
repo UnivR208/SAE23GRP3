@@ -1,6 +1,6 @@
 -- Création de la base de données
-CREATE DATABASE IF NOT EXISTS nvincen3_05;
-USE nvincen3_05;
+CREATE DATABASE IF NOT EXISTS tom;
+USE tom;
 
 -- Table des utilisateurs
 CREATE TABLE IF NOT EXISTS users (
@@ -31,4 +31,9 @@ DELETE FROM users;
 
 -- Insertion de l'utilisateur Tom
 INSERT INTO users (id, name, email, password, role) VALUES
-('TOM001', 'Tom', 'tom@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'student'); 
+('TOM001', 'Tom', 'tom@example.com', 'tom', 'student');
+
+-- Insertion des résidences de Tom
+INSERT INTO residences (user_id, type, city_name, latitude, longitude, start_date, end_date) VALUES
+('TOM001', 'main', 'Besançon', 47.2378, 6.0241, '2024-01-01', '2024-12-31'),
+('TOM001', 'secondary', 'Paris', 48.8566, 2.3522, '2024-07-01', '2024-08-31'); 
