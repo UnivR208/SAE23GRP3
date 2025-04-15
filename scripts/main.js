@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const addResidenceError = document.getElementById('add-residence-error');
     const useLocationButton = document.getElementById('use-location-button');
 
+    // Initialiser la date du jour dans le formulaire
+    const today = new Date().toISOString().split('T')[0];
+    startDateInput.value = today;
+    
     // Récupérer les informations de l'utilisateur connecté
     const userId = sessionStorage.getItem('userId');
     const userName = sessionStorage.getItem('userName');
@@ -290,6 +294,34 @@ document.addEventListener('DOMContentLoaded', function() {
             const student = studentData?.students.find(s => s.id === studentId);
 
             if (student) {
+                // Vérifier si l'étudiant a des résidences
+                const hasResidences = student.main.startDate || student.secondary.startDate || student.other.startDate;
+
+                if (!hasResidences) {
+                    // Afficher uniquement le message pour ajouter une résidence
+                    studentInfo.innerHTML = `
+                        <p>Nom : ${student.name}</p>
+                        <p>Email : ${student.email}</p>
+                        <div style="margin: 20px 0; text-align: center;">
+                            <p style="color: #666; font-size: 1.1em;">
+                                Aucune résidence n'est enregistrée. 
+                                Veuillez ajouter une résidence en utilisant le formulaire ci-dessous.
+                            </p>
+                        </div>
+                    `;
+                    
+                    // Désactiver tous les boutons de résidence
+                    mainResidence.disabled = true;
+                    secondaryResidence.disabled = true;
+                    otherResidence.disabled = true;
+
+                    // Effacer les sections météo
+                    currentWeather.innerHTML = '';
+                    forecast.innerHTML = '';
+                    
+                    return;
+                }
+
                 // Vérifier la validité des périodes d'étude
                 const mainStageStatus = student.main.startDate ? checkDateValidity(student.main.startDate, student.main.endDate) : { isValid: false, message: "Pas de résidence principale" };
                 const secondaryStageStatus = student.secondary.startDate ? checkDateValidity(student.secondary.startDate, student.secondary.endDate) : { isValid: false, message: "Pas de résidence secondaire" };
@@ -305,39 +337,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 studentInfo.innerHTML = `
                     <p>Nom : ${student.name}</p>
                     <p>Email : ${student.email}</p>
-                    <div style="margin: 10px 0;">
-                        <p><strong>Résidence Principale ${student.main.location ? `(${student.main.location.name})` : ''}</strong></p>
-                        ${student.main.startDate ? `
+                    ${student.main.startDate ? `
+                        <div style="margin: 10px 0;">
+                            <p><strong>Résidence Principale ${student.main.location ? `(${student.main.location.name})` : ''}</strong></p>
                             <p style="margin: 5px 0;">
                                 <span style="color: #666;">Période : du ${formatDate(student.main.startDate)} au ${formatDate(student.main.endDate)}</span>
                             </p>
-                        ` : ''}
-                        <p style="color: ${mainStageStatus.isValid ? 'green' : 'red'}">
-                            ${mainStageStatus.message}
-                        </p>
-                    </div>
-                    <div style="margin: 10px 0;">
-                        <p><strong>Résidence Secondaire ${student.secondary.location ? `(${student.secondary.location.name})` : ''}</strong></p>
-                        ${student.secondary.startDate ? `
+                            <p style="color: ${mainStageStatus.isValid ? 'green' : 'red'}">
+                                ${mainStageStatus.message}
+                            </p>
+                        </div>
+                    ` : ''}
+                    ${student.secondary.startDate ? `
+                        <div style="margin: 10px 0;">
+                            <p><strong>Résidence Secondaire ${student.secondary.location ? `(${student.secondary.location.name})` : ''}</strong></p>
                             <p style="margin: 5px 0;">
                                 <span style="color: #666;">Période : du ${formatDate(student.secondary.startDate)} au ${formatDate(student.secondary.endDate)}</span>
                             </p>
-                        ` : ''}
-                        <p style="color: ${secondaryStageStatus.isValid ? 'green' : 'red'}">
-                            ${secondaryStageStatus.message}
-                        </p>
-                    </div>
-                    <div style="margin: 10px 0;">
-                        <p><strong>Autre Résidence ${student.other.location ? `(${student.other.location.name})` : ''}</strong></p>
-                        ${student.other.startDate ? `
+                            <p style="color: ${secondaryStageStatus.isValid ? 'green' : 'red'}">
+                                ${secondaryStageStatus.message}
+                            </p>
+                        </div>
+                    ` : ''}
+                    ${student.other.startDate ? `
+                        <div style="margin: 10px 0;">
+                            <p><strong>Autre Résidence ${student.other.location ? `(${student.other.location.name})` : ''}</strong></p>
                             <p style="margin: 5px 0;">
                                 <span style="color: #666;">Période : du ${formatDate(student.other.startDate)} au ${formatDate(student.other.endDate)}</span>
                             </p>
-                        ` : ''}
-                        <p style="color: ${otherStageStatus.isValid ? 'green' : 'red'}">
-                            ${otherStageStatus.message}
-                        </p>
-                    </div>
+                            <p style="color: ${otherStageStatus.isValid ? 'green' : 'red'}">
+                                ${otherStageStatus.message}
+                            </p>
+                        </div>
+                    ` : ''}
                 `;
 
                 // Désactiver les boutons si la période n'est pas valide

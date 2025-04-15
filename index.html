@@ -4,6 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Climatomètre BUT1 R&T</title>
+    <style>
+        .delete-btn {
+            color: red;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 10px;
+        }
+        .delete-btn:hover {
+            color: darkred;
+        }
+        .residence-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
 </head>
 <body>
     <div>
@@ -23,9 +41,11 @@
 
         <div>
             <h2>Résidences</h2>
-            <button id="main-residence">Résidence Principale</button>
-            <button id="secondary-residence">Résidence Secondaire</button>
-            <button id="other-residence">Autre Résidence</button>
+            <div class="residence-controls">
+                <button id="main-residence" disabled>Résidence Principale</button>
+                <button id="secondary-residence" disabled>Résidence Secondaire</button>
+                <button id="other-residence" disabled>Autre Résidence</button>
+            </div>
 
             <div id="add-residence-form" style="margin-top: 20px;">
                 <h3>Ajouter une résidence</h3>
