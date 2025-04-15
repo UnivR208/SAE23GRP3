@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const endDateInput = document.getElementById('end-date');
     const residenceTypeSelect = document.getElementById('residence-type');
     const addResidenceError = document.getElementById('add-residence-error');
+    const useLocationButton = document.getElementById('use-location-button');
 
     // Récupérer les informations de l'utilisateur connecté
     const userId = sessionStorage.getItem('userId');
@@ -25,6 +26,62 @@ document.addEventListener('DOMContentLoaded', function() {
         studentInfo.innerHTML = `<p>Étudiant connecté : ${userName} (${userId})</p>`;
         loadStudentData(userId);
     }
+
+    // Gestion de la géolocalisation
+    useLocationButton.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            showAddResidenceError('La géolocalisation n\'est pas supportée par votre navigateur');
+            return;
+        }
+
+        useLocationButton.disabled = true;
+        useLocationButton.textContent = '📍 Localisation...';
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    // Stocker les coordonnées dans des attributs data- de l'input
+                    cityNameInput.dataset.lat = lat;
+                    cityNameInput.dataset.lon = lon;
+
+                    // Afficher les coordonnées dans le champ
+                    cityNameInput.value = `GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                    showAddResidenceError('Position GPS trouvée', 'green');
+                } catch (error) {
+                    console.error('Erreur de géolocalisation:', error);
+                    showAddResidenceError('Erreur lors de la récupération de la position');
+                } finally {
+                    useLocationButton.disabled = false;
+                    useLocationButton.textContent = '📍 Ma position';
+                }
+            },
+            (error) => {
+                let errorMessage = 'Erreur de géolocalisation';
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'Vous avez refusé la géolocalisation';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'Position non disponible';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'La demande de géolocalisation a expiré';
+                        break;
+                }
+                showAddResidenceError(errorMessage);
+                useLocationButton.disabled = false;
+                useLocationButton.textContent = '📍 Ma position';
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    });
 
     // Gestion de la recherche d'étudiants
     searchButton.addEventListener('click', () => {
@@ -69,20 +126,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            // Conversion du nom de la ville en coordonnées via l'API Nominatim
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`);
-            const data = await response.json();
+            let location;
 
-            if (data.length === 0) {
-                showAddResidenceError('Ville non trouvée');
-                return;
+            // Si on a des coordonnées GPS stockées
+            if (cityNameInput.dataset.lat && cityNameInput.dataset.lon) {
+                location = {
+                    name: cityName,
+                    lat: parseFloat(cityNameInput.dataset.lat),
+                    lon: parseFloat(cityNameInput.dataset.lon)
+                };
+            } else {
+                // Sinon, on utilise l'API Nominatim comme avant
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    showAddResidenceError('Ville non trouvée');
+                    return;
+                }
+
+                location = {
+                    name: cityName,
+                    lat: parseFloat(data[0].lat),
+                    lon: parseFloat(data[0].lon)
+                };
             }
-
-            const location = {
-                name: cityName,
-                lat: parseFloat(data[0].lat),
-                lon: parseFloat(data[0].lon)
-            };
 
             // Mise à jour du fichier students.json
             const studentResponse = await fetch('data/students.json');
@@ -125,6 +193,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Réinitialiser le formulaire
                 cityNameInput.value = '';
+                cityNameInput.dataset.lat = '';
+                cityNameInput.dataset.lon = '';
                 startDateInput.value = '';
                 endDateInput.value = '';
                 

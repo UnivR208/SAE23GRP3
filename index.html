@@ -30,7 +30,10 @@
             <div id="add-residence-form" style="margin-top: 20px;">
                 <h3>Ajouter une résidence</h3>
                 <div>
-                    <input type="text" id="city-name" placeholder="Nom de la ville">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="city-name" placeholder="Nom de la ville">
+                        <button id="use-location-button" title="Utiliser ma position actuelle">📍 Ma position</button>
+                    </div>
                     <input type="date" id="start-date" placeholder="Date de début">
                     <input type="date" id="end-date" placeholder="Date de fin">
                     <select id="residence-type">
