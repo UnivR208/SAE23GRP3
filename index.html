@@ -25,6 +25,23 @@
             <h2>Résidences</h2>
             <button id="main-residence">Résidence Principale</button>
             <button id="secondary-residence">Résidence Secondaire</button>
+            <button id="other-residence">Autre Résidence</button>
+
+            <div id="add-residence-form" style="margin-top: 20px;">
+                <h3>Ajouter une résidence</h3>
+                <div>
+                    <input type="text" id="city-name" placeholder="Nom de la ville">
+                    <input type="date" id="start-date" placeholder="Date de début">
+                    <input type="date" id="end-date" placeholder="Date de fin">
+                    <select id="residence-type">
+                        <option value="main">Principale</option>
+                        <option value="secondary">Secondaire</option>
+                        <option value="other">Autre</option>
+                    </select>
+                    <button id="add-residence-button">Ajouter</button>
+                </div>
+                <div id="add-residence-error" style="color: red;"></div>
+            </div>
 
             <div id="weather-info">
                 <h3>Météo Actuelle</h3>
