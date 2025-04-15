@@ -170,6 +170,106 @@ try {
         exit();
     }
 
+    // Fonction pour synchroniser la base de données avec le JSON
+    function syncDatabaseWithJSON($conn) {
+        try {
+            // Lire le fichier JSON
+            $jsonFile = __DIR__ . '/../data/students.json';
+            $jsonData = file_get_contents($jsonFile);
+            $data = json_decode($jsonData, true);
+
+            if (!$data) {
+                throw new Exception("Impossible de lire le fichier JSON");
+            }
+
+            // Préparation des requêtes
+            $stmtUser = $conn->prepare("INSERT INTO users (id, name, email, password, role) 
+                                       VALUES (:id, :name, :email, :password, :role)
+                                       ON DUPLICATE KEY UPDATE 
+                                       name = VALUES(name),
+                                       email = VALUES(email),
+                                       password = VALUES(password),
+                                       role = VALUES(role)");
+
+            $stmtResidence = $conn->prepare("INSERT INTO residences (user_id, type, city_name, latitude, longitude, start_date, end_date)
+                                            VALUES (:user_id, :type, :city_name, :latitude, :longitude, :start_date, :end_date)
+                                            ON DUPLICATE KEY UPDATE
+                                            city_name = VALUES(city_name),
+                                            latitude = VALUES(latitude),
+                                            longitude = VALUES(longitude),
+                                            start_date = VALUES(start_date),
+                                            end_date = VALUES(end_date)");
+
+            // Traitement des étudiants
+            foreach ($data['students'] as $student) {
+                // Insertion/Mise à jour de l'utilisateur
+                $stmtUser->execute([
+                    ':id' => $student['id'],
+                    ':name' => $student['name'],
+                    ':email' => $student['email'],
+                    ':password' => $student['password'],
+                    ':role' => $student['role']
+                ]);
+
+                // Insertion/Mise à jour des résidences
+                if (isset($student['main'])) {
+                    $stmtResidence->execute([
+                        ':user_id' => $student['id'],
+                        ':type' => 'main',
+                        ':city_name' => $student['main']['location']['name'],
+                        ':latitude' => $student['main']['location']['lat'],
+                        ':longitude' => $student['main']['location']['lon'],
+                        ':start_date' => $student['main']['startDate'],
+                        ':end_date' => $student['main']['endDate']
+                    ]);
+                }
+
+                if (isset($student['secondary'])) {
+                    $stmtResidence->execute([
+                        ':user_id' => $student['id'],
+                        ':type' => 'secondary',
+                        ':city_name' => $student['secondary']['location']['name'],
+                        ':latitude' => $student['secondary']['location']['lat'],
+                        ':longitude' => $student['secondary']['location']['lon'],
+                        ':start_date' => $student['secondary']['startDate'],
+                        ':end_date' => $student['secondary']['endDate']
+                    ]);
+                }
+
+                if (isset($student['other'])) {
+                    $stmtResidence->execute([
+                        ':user_id' => $student['id'],
+                        ':type' => 'other',
+                        ':city_name' => $student['other']['location']['name'],
+                        ':latitude' => $student['other']['location']['lat'],
+                        ':longitude' => $student['other']['location']['lon'],
+                        ':start_date' => $student['other']['startDate'],
+                        ':end_date' => $student['other']['endDate']
+                    ]);
+                }
+            }
+
+            return true;
+        } catch (Exception $e) {
+            error_log("Erreur de synchronisation: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Si l'action est sync, synchroniser la base de données
+    if (isset($data['action']) && $data['action'] === 'sync') {
+        try {
+            if (syncDatabaseWithJSON($conn)) {
+                echo json_encode(['success' => true, 'message' => 'Synchronisation réussie']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Erreur lors de la synchronisation']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erreur: ' . $e->getMessage()]);
+        }
+        exit();
+    }
+
     // Suppression des données existantes
     $conn->exec("DELETE FROM residences");
     $conn->exec("DELETE FROM users");

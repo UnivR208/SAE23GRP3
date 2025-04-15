@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Envoyer la requête à l'API
-            const apiResponse = await fetch('../php/sync.php', {
+            const apiResponse = await fetch('/php/sync.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const response = await fetch('../php/sync.php', {
+            const response = await fetch('/php/sync.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -557,4 +557,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Exposer la fonction deleteResidence globalement
     window.deleteResidence = deleteResidence;
+
+    // Fonction pour synchroniser la base de données
+    async function syncDatabase() {
+        try {
+            const response = await fetch('/php/sync.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'sync'
+                })
+            });
+
+            const result = await response.json();
+            if (!result.success) {
+                console.error('Erreur de synchronisation:', result.message);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la synchronisation:', error);
+        }
+    }
+
+    // Synchroniser au démarrage
+    document.addEventListener('DOMContentLoaded', async () => {
+        await syncDatabase();
+    });
+
+    // Synchroniser à la connexion
+    async function handleLogin(userId, userName) {
+        sessionStorage.setItem('userId', userId);
+        sessionStorage.setItem('userName', userName);
+        await syncDatabase();
+        await loadStudentData(userId);
+    }
+
+    // Synchroniser à la déconnexion
+    async function handleLogout() {
+        try {
+            await syncDatabase();
+            sessionStorage.removeItem('userId');
+            sessionStorage.removeItem('userName');
+            window.location.href = 'login.html';
+        } catch (error) {
+            console.error('Erreur lors de la déconnexion:', error);
+            // Même en cas d'erreur, on continue la déconnexion
+            sessionStorage.removeItem('userId');
+            sessionStorage.removeItem('userName');
+            window.location.href = 'login.html';
+        }
+    }
+
+    // Ajouter le gestionnaire d'événements pour le bouton de déconnexion
+    document.getElementById('logout-button').addEventListener('click', handleLogout);
 }); 

@@ -21,11 +21,32 @@
             align-items: center;
             gap: 10px;
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 <body>
     <div>
-        <h1>Climatomètre BUT1 R&T</h1>
+        <div class="header">
+            <h1>Climatomètre BUT1 R&T</h1>
+            <button id="logout-button" class="logout-btn">Déconnexion</button>
+        </div>
         <p>Suivi des climats des résidences étudiantes</p>
 
         <div>
