@@ -91,7 +91,9 @@ Les contributions sont les bienvenues ! Pour contribuer :
 Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 ## Auteurs
-- [Liste des contributeurs]
+- Nathanaël
+- Séphora
+- Tom 
 
 ## Support
 Pour toute question ou problème, veuillez ouvrir une issue sur le dépôt GitHub. 
