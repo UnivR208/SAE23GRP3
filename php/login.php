@@ -1,8 +1,8 @@
 <?php
-header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -15,6 +15,13 @@ $password = "tom";
 $dbname = "tom";
 
 try {
+    // D'abord, essayer de créer la base de données si elle n'existe pas
+    $pdo = new PDO("mysql:host=$servername", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname`");
+    $pdo->exec("USE `$dbname`");
+
+    // Maintenant, se connecter à la base de données spécifique
     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 

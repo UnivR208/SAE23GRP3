@@ -41,12 +41,6 @@
             color: red;
             margin-top: 10px;
         }
-        .create-account-form {
-            display: none;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-        }
     </style>
 </head>
 <body>
@@ -64,29 +58,6 @@
             <button type="submit" class="btn btn-primary">Se connecter</button>
         </form>
         <div id="errorMessage" class="error-message"></div>
-
-        <div id="createAccountForm" class="create-account-form">
-            <h3>Créer un compte</h3>
-            <div class="form-group">
-                <label for="new-name">Nom</label>
-                <input type="text" id="new-name" required>
-            </div>
-            <div class="form-group">
-                <label for="new-email">Email</label>
-                <input type="email" id="new-email" required>
-            </div>
-            <div class="form-group">
-                <label for="new-password">Mot de passe</label>
-                <input type="password" id="new-password" required>
-            </div>
-            <div class="form-group">
-                <label for="new-group">Groupe</label>
-                <select id="new-group" required>
-                    <option value="">Sélectionner un groupe</option>
-                </select>
-            </div>
-            <button type="button" id="createAccountBtn" class="btn btn-primary">Créer le compte</button>
-        </div>
     </div>
 
     <script src="scripts/auth.js"></script>

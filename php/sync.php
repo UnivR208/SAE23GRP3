@@ -13,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Connexion à la base de données
 $servername = "localhost";
-$username = "root";  // Utilisateur par défaut de phpMyAdmin
-$password = "tom";      // Mot de passe par défaut de phpMyAdmin
+$username = "root";
+$password = "tom";
 $dbname = "tom";
 
 try {
@@ -54,6 +54,9 @@ try {
     // Si l'action est delete, supprimer la résidence
     if (isset($data['action']) && $data['action'] === 'delete') {
         try {
+            // Démarrer une transaction
+            $conn->beginTransaction();
+            
             // Supprimer de la base de données
             $stmtDeleteResidence->execute([
                 ':user_id' => $data['user_id'],
@@ -63,38 +66,48 @@ try {
             // Vérifier si la suppression a réussi
             if ($stmtDeleteResidence->rowCount() > 0) {
                 // Mettre à jour le fichier JSON
-                $jsonFile = __DIR__ . '/../data/students.json';
+                $jsonFile = '/srv/http/data/students.json';
                 
                 // Vérifier si le fichier est accessible en écriture
                 if (!is_writable($jsonFile)) {
-                    error_log("Le fichier $jsonFile n'est pas accessible en écriture");
-                    // Continuer quand même car la suppression en BDD a réussi
-                } else {
-                    try {
-                        $jsonData = file_get_contents($jsonFile);
-                        $students = json_decode($jsonData, true);
-                        
-                        foreach ($students['students'] as &$student) {
-                            if ($student['id'] === $data['user_id']) {
-                                unset($student[$data['type']]);
-                                break;
-                            }
-                        }
-                        
-                        if (file_put_contents($jsonFile, json_encode($students, JSON_PRETTY_PRINT)) === false) {
-                            error_log("Impossible d'écrire dans le fichier $jsonFile");
-                        }
-                    } catch (Exception $e) {
-                        error_log("Erreur lors de la mise à jour du JSON: " . $e->getMessage());
+                    throw new Exception("Le fichier $jsonFile n'est pas accessible en écriture");
+                }
+                
+                $jsonData = file_get_contents($jsonFile);
+                $students = json_decode($jsonData, true);
+                
+                if (!$students) {
+                    throw new Exception("Impossible de décoder le fichier JSON");
+                }
+                
+                $found = false;
+                foreach ($students['students'] as &$student) {
+                    if ($student['id'] === $data['user_id']) {
+                        unset($student[$data['type']]);
+                        $found = true;
+                        break;
                     }
                 }
                 
+                if (!$found) {
+                    throw new Exception("Étudiant non trouvé dans le JSON");
+                }
+                
+                if (file_put_contents($jsonFile, json_encode($students, JSON_PRETTY_PRINT)) === false) {
+                    throw new Exception("Impossible d'écrire dans le fichier $jsonFile");
+                }
+                
+                // Valider la transaction
+                $conn->commit();
                 echo json_encode(['success' => true, 'message' => 'Résidence supprimée avec succès']);
             } else {
+                $conn->rollBack();
                 echo json_encode(['success' => false, 'message' => 'Aucune résidence trouvée à supprimer']);
             }
-        } catch (PDOException $e) {
-            error_log("Erreur PDO: " . $e->getMessage());
+        } catch (Exception $e) {
+            // En cas d'erreur, annuler la transaction
+            $conn->rollBack();
+            error_log("Erreur: " . $e->getMessage());
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erreur lors de la suppression: ' . $e->getMessage()]);
         }
@@ -104,6 +117,9 @@ try {
     // Si l'action est add, ajouter la résidence
     if (isset($data['action']) && $data['action'] === 'add') {
         try {
+            // Démarrer une transaction
+            $conn->beginTransaction();
+            
             // Vérifier si la résidence existe déjà
             $checkStmt = $conn->prepare("SELECT id FROM residences WHERE user_id = :user_id AND type = :type");
             $checkStmt->execute([
@@ -138,32 +154,50 @@ try {
             ]);
             
             // Mettre à jour le fichier JSON
-            $jsonFile = __DIR__ . '/../data/students.json';
-            if (is_writable($jsonFile)) {
-                $jsonData = file_get_contents($jsonFile);
-                $students = json_decode($jsonData, true);
-                
-                foreach ($students['students'] as &$student) {
-                    if ($student['id'] === $data['user_id']) {
-                        $student[$data['type']] = [
-                            'location' => [
-                                'name' => $data['city_name'],
-                                'lat' => $data['latitude'],
-                                'lon' => $data['longitude']
-                            ],
-                            'startDate' => $data['start_date'],
-                            'endDate' => $data['end_date']
-                        ];
-                        break;
-                    }
-                }
-                
-                file_put_contents($jsonFile, json_encode($students, JSON_PRETTY_PRINT));
+            $jsonFile = '/srv/http/data/students.json';
+            if (!is_writable($jsonFile)) {
+                throw new Exception("Le fichier $jsonFile n'est pas accessible en écriture");
             }
             
+            $jsonData = file_get_contents($jsonFile);
+            $students = json_decode($jsonData, true);
+            
+            if (!$students) {
+                throw new Exception("Impossible de décoder le fichier JSON");
+            }
+            
+            $found = false;
+            foreach ($students['students'] as &$student) {
+                if ($student['id'] === $data['user_id']) {
+                    $student[$data['type']] = [
+                        'location' => [
+                            'name' => $data['city_name'],
+                            'lat' => $data['latitude'],
+                            'lon' => $data['longitude']
+                        ],
+                        'startDate' => $data['start_date'],
+                        'endDate' => $data['end_date']
+                    ];
+                    $found = true;
+                    break;
+                }
+            }
+            
+            if (!$found) {
+                throw new Exception("Étudiant non trouvé dans le JSON");
+            }
+            
+            if (file_put_contents($jsonFile, json_encode($students, JSON_PRETTY_PRINT)) === false) {
+                throw new Exception("Impossible d'écrire dans le fichier $jsonFile");
+            }
+            
+            // Valider la transaction
+            $conn->commit();
             echo json_encode(['success' => true, 'message' => 'Résidence ajoutée avec succès']);
-        } catch (PDOException $e) {
-            error_log("Erreur PDO: " . $e->getMessage());
+        } catch (Exception $e) {
+            // En cas d'erreur, annuler la transaction
+            $conn->rollBack();
+            error_log("Erreur: " . $e->getMessage());
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erreur lors de l\'ajout: ' . $e->getMessage()]);
         }
