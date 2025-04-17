@@ -442,8 +442,13 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('Chargement des données pour:', residenceType, residenceData);
             
+            // Si les données de résidence ne sont pas fournies, tenter de les récupérer
+            // à partir de currentResidences
             if (!residenceData) {
-                throw new Error(`Résidence ${residenceType} non trouvée`);
+                residenceData = currentResidences.find(r => r.type === residenceType);
+                if (!residenceData) {
+                    throw new Error(`Résidence ${residenceType} non trouvée`);
+                }
             }
 
             const dateStatus = checkDateValidity(residenceData.start_date, residenceData.end_date);
