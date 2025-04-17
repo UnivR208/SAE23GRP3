@@ -1,43 +1,47 @@
-/* Transition douce */
+/* Reset et styles de base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', sans-serif;
     background: linear-gradient(to bottom right, #a6ddf0, #b3e5fc);
     min-height: 100vh;
-    overflow-x: hidden;
-    position: relative;
-    transition: background 1s ease, color 1s ease;
+    overflow: auto;
+    position: static;
     color: #333;
-  }
-  
-  /* Mode nuit */
-  body.night-mode {
-    background: radial-gradient(ellipse at bottom, #0d1b2a 0%, #000000 100%);
+}
+
+/* Mode nuit simplifié */
+body.night-mode {
+    background: #0d1b2a;
     color: white;
-  }
-  
-  /* Conteneur principal */
-  .container {
+}
+
+/* Conteneur principal */
+.container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-  }
-  
-  /* En-tête */
-  .site-header {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+    position: relative;
+}
+
+/* En-tête */
+.site-header {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 10px;
-    z-index: 10;
-  }
-  
-  /* Styles pour la page principale */
-  .header {
+    margin-bottom: 20px;
+}
+
+/* Styles pour la page principale */
+.header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -45,20 +49,20 @@ body {
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 10px;
     margin-bottom: 15px;
-  }
-  
-  h1, h2, h3 {
+}
+
+h1, h2, h3 {
     margin: 0;
     padding: 0;
-  }
-  
-  p {
+}
+
+p {
     text-align: center;
     margin-bottom: 20px;
     font-size: 18px;
-  }
-  
-  .logout-btn {
+}
+
+.logout-btn {
     padding: 8px 15px;
     background-color: #ff5252;
     color: white;
@@ -66,110 +70,103 @@ body {
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
-  }
-  
-  .logout-btn:hover {
+}
+
+.logout-btn:hover {
     background-color: #ff3333;
-  }
-  
-  /* Styles pour les sections */
-  .section {
+}
+
+/* Styles pour les sections */
+.section {
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Styles pour les contrôles des résidences */
-  .residence-controls {
+}
+
+/* Styles pour les contrôles des résidences */
+.residence-controls {
     display: flex;
     gap: 10px;
     margin-top: 10px;
-  }
-  
-  /* Styles pour la recherche */
-  .search-container {
+}
+
+/* Styles pour la recherche */
+.search-container {
     display: flex;
     gap: 10px;
     margin: 15px 0;
-  }
-  
-  /* Styles pour les formulaires */
-  .form-fields {
+}
+
+/* Styles pour les formulaires */
+.form-fields {
     display: flex;
     flex-direction: column;
     gap: 15px;
-  }
-  
-  .date-fields {
+}
+
+.date-fields {
     display: flex;
     gap: 10px;
-  }
-  
-  .form-row {
+}
+
+.form-row {
     display: flex;
     gap: 10px;
-  }
-  
-  /* Styles pour les boutons */
-  button {
+}
+
+/* Styles pour les boutons */
+button {
     padding: 8px 15px;
     background-color: #007acc;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  button:hover:not([disabled]) {
+}
+
+button:hover {
     background-color: #005fa3;
-  }
-  
-  button[disabled] {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
-  
-  /* Styles pour les inputs */
-  input, select {
+}
+
+/* Styles pour les inputs */
+input, select {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
-  }
-  
-  /* Styles pour la météo actuelle */
-  #current-weather, #forecast {
+}
+
+/* Styles pour la météo actuelle */
+#current-weather, #forecast {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
     margin-top: 15px;
-  }
-  
-  /* Style pour le formulaire d'ajout de résidence */
-  #add-residence-form {
+}
+
+/* Style pour le formulaire d'ajout de résidence */
+#add-residence-form {
     padding: 15px;
     background-color: rgba(255, 255, 255, 0.5);
     border-radius: 8px;
-  }
-  
-  /* Style pour le climatomètre collectif */
-  #climate-stats {
+}
+
+/* Style pour le climatomètre collectif */
+#climate-stats {
     padding: 15px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-  }
-  
-  .site-logo {
+}
+
+.site-logo {
     width: 250px;
     height: auto;
-  }
-  
-  /* Bouton mode */
-  #toggle-theme {
+}
+
+/* Bouton mode */
+#toggle-theme {
     padding: 10px;
     background-color: #007acc;
     color: white;
@@ -178,14 +175,14 @@ body {
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s ease;
-  }
-  
-  #toggle-theme:hover {
+}
+
+#toggle-theme:hover {
     background-color: #005fa3;
-  }
-  
-  /* Conteneur */
-  .login-container {
+}
+
+/* Conteneur */
+.login-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -196,27 +193,27 @@ body {
     box-sizing: border-box;
     z-index: 1;
     position: relative;
-  }
-  
-  /* Formulaire */
-  .login-form {
+}
+
+/* Formulaire */
+.login-form {
     display: flex;
     flex-direction: column;
     gap: 15px;
     width: 100%;
     max-width: 300px;
     margin-top: 20px;
-  }
-  
-  .login-form input {
+}
+
+.login-form input {
     padding: 12px;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .login-form button {
+}
+
+.login-form button {
     padding: 12px;
     background-color: #007acc;
     color: white;
@@ -225,102 +222,72 @@ body {
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s ease;
-  }
-  
-  .login-form button:hover {
+}
+
+.login-form button:hover {
     background-color: #005fa3;
-  }
-  
-  /* Nuages animés */
-  .cloud {
-    position: absolute;
-    opacity: 1;
-    animation: floatCloud 20s ease-in-out infinite;
-  }
-  
-  .cloud1 { top: 10%; left: 5%; width: 200px; animation-delay: 0s; }
-  .cloud2 { top: 50%; left: 70%; width: 220px; animation-delay: 2s; }
-  .cloud3 { top: 20%; left: 30%; width: 180px; animation-delay: 4s; }
-  .cloud4 { bottom: 15%; left: 60%; width: 200px; animation-delay: 6s; }
-  .cloud5 { bottom: 10%; left: 10%; width: 160px; animation-delay: 1s; }
-  .cloud6 { top: 70%; right: 5%; width: 200px; animation-delay: 3s; }
-  
-  @keyframes floatCloud {
-    0% { transform: translateY(0px) translateX(0px); }
-    50% { transform: translateY(20px) translateX(30px); }
-    100% { transform: translateY(0px) translateX(0px); }
-  }
-  
-  /* Étoiles */
-  .star {
-    position: absolute;
-    width: 100px;
-    opacity: 0;
-    animation: twinkle 3s infinite ease-in-out;
-  }
-  
-  body.night-mode .star {
-    opacity: 1;
-  }
-  
-  .star1 { top: 20%; left: 40%; animation-delay: 0s; }
-  .star2 { bottom: 20%; right: 30%; animation-delay: 1s; }
-  
-  @keyframes twinkle {
-    0%, 100% { opacity: 0.2; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
-  }
-  
-  /* Brume animée */
-  .fog {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(closest-side, rgba(255,255,255,0.05), transparent),
-                radial-gradient(closest-side, rgba(255,255,255,0.05), transparent);
-    background-size: 1000px 1000px;
-    animation: moveFog 120s linear infinite;
-    z-index: -1;
-    pointer-events: none;
-  }
-  
-  @keyframes moveFog {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(-500px, -500px); }
-  }
-  
-  /* Responsive */
-  @media (max-width: 768px) {
-    .site-logo { width: 180px; }
-    .cloud { width: 150px; }
-    .star { width: 60px; }
-    
-    .residence-controls, .search-container, .date-fields, .form-row {
-      flex-direction: column;
-      width: 100%;
+}
+
+/* Suppression des animations et des éléments décoratifs qui pourraient bloquer */
+.cloud, .star, .fog {
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
     }
     
-    .search-container input, .date-fields input, .form-row select, .form-row button {
-      width: 100%;
+    .header {
+        flex-direction: column;
+        gap: 10px;
     }
-  }
-  
-  @media (max-width: 480px) {
+    
+    input, button, select {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
     .site-header { top: 10px; right: 10px; }
     .site-logo { width: 130px; }
-    .cloud, .star { display: none; }
     .login-form input,
     .login-form button { font-size: 0.9rem; padding: 10px; }
     .login-container h2 { font-size: 1rem; }
     
-    .header {
-      flex-direction: column;
-      gap: 10px;
-    }
-    
     input, button, select {
-      width: 100%;
+        width: 100%;
     }
-  } 
+}
+
+.delete-residence-btn {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+.delete-residence-btn:hover {
+    background-color: #cc0000;
+}
+
+.success-message {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    text-align: center;
+    animation: fadeOut 3s forwards;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
+} 

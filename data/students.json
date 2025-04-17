@@ -1,11 +1,38 @@
 {
+    "groups": [
+        {
+            "id": "GRP001",
+            "name": "RT1",
+            "description": "Première année RT"
+        },
+        {
+            "id": "GRP002",
+            "name": "RT2",
+            "description": "Deuxième année RT"
+        }
+    ],
     "students": [
         {
             "id": "TOM001",
             "name": "Tom",
             "email": "tom@example.com",
             "password": "tom",
-            "role": "student"
+            "role": "user",
+            "group_id": "GRP002",
+            "main": {
+                "location": {
+                    "name": "Besançon",
+                    "lat": 47.2378,
+                    "lon": 6.0241
+                }
+            },
+            "secondary": {
+                "location": {
+                    "name": "Paris",
+                    "lat": 48.8566,
+                    "lon": 2.3522
+                }
+            }
         }
     ],
     "admins": [
@@ -13,7 +40,7 @@
             "id": "ADMIN001",
             "name": "Admin",
             "email": "admin@example.com",
-            "password": "admin",
+            "password": "admin123",
             "role": "admin"
         }
     ]

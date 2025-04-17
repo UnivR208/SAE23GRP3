@@ -9,10 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$servername = "localhost";
-$username = "root";
-$password = "tom";
-$dbname = "tom";
+$servername = "mysql_serv";
+$username = "tdavid";
+$password = "ev6&il}[sv";
+$dbname = "tdavid_05";
 
 try {
     // D'abord, essayer de créer la base de données si elle n'existe pas

@@ -1,9 +1,9 @@
 <?php
 class Database {
-    private $host = "mysql_serv";
-    private $db_name = "nvincen3_05";
-    private $username = "nvincen3";
-    private $password = "SQL7nathR&T";
+    private $servername = "mysql_serv";
+    private $username = "tdavid";
+    private $password = "ev6&il}[sv";
+    private $dbname = "tdavid_05";
     public $conn;
 
     public function getConnection() {
@@ -11,7 +11,7 @@ class Database {
 
         try {
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                "mysql:host=" . $this->servername . ";dbname=" . $this->dbname,
                 $this->username,
                 $this->password
             );

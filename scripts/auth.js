@@ -1,3 +1,6 @@
+// Configuration
+const BASE_URL = 'https://rt-projet.pu-pm.univ-fcomte.fr/users/tdavid';
+
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
     const errorMessage = document.getElementById('errorMessage');
@@ -9,39 +12,80 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('password').value;
 
         try {
-            const response = await fetch('/php/login.php', {
+            const response = await fetch(`${BASE_URL}/php/login.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     action: 'login',
-                    email: email,
-                    password: password
+                    email,
+                    password
                 })
             });
 
-            const result = await response.json();
+            const data = await response.json();
             
-            if (result.success) {
+            if (data.success) {
                 // Stocker les informations de l'utilisateur
-                sessionStorage.setItem('userId', result.user.id);
-                sessionStorage.setItem('userName', result.user.name);
-                sessionStorage.setItem('userRole', result.user.role);
+                sessionStorage.setItem('userEmail', email);
+                sessionStorage.setItem('userName', data.userName);
+                sessionStorage.setItem('userRole', data.userRole);
                 sessionStorage.setItem('loggedIn', 'true');
                 
                 // Rediriger en fonction du rôle
-                if (result.user.role === 'admin') {
+                if (data.userRole === 'admin') {
                     window.location.href = 'admin.html';
                 } else {
                     window.location.href = 'index.html';
                 }
             } else {
-                errorMessage.textContent = result.message;
+                showError(data.message || 'Erreur de connexion');
             }
         } catch (error) {
+            showError('Erreur réseau');
             console.error('Erreur:', error);
-            errorMessage.textContent = 'Une erreur est survenue lors de la connexion';
         }
     });
-}); 
+});
+
+async function login(email, password) {
+    try {
+        const response = await fetch(`${BASE_URL}/php/login.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'login',
+                email,
+                password
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            sessionStorage.setItem('userId', data.userId);
+            sessionStorage.setItem('userName', data.userName);
+            sessionStorage.setItem('userRole', data.userRole);
+            sessionStorage.setItem('loggedIn', 'true');
+            
+            // Rediriger en fonction du rôle
+            if (data.userRole === 'admin') {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'index.html';
+            }
+        } else {
+            showError(data.message || 'Erreur de connexion');
+        }
+    } catch (error) {
+        showError('Erreur réseau');
+        console.error('Erreur:', error);
+    }
+}
+
+function showError(message) {
+    errorMessage.textContent = message;
+} 

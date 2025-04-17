@@ -6,6 +6,7 @@ const BASE_URL = 'https://rt-projet.pu-pm.univ-fcomte.fr/users/tdavid';
 let currentStudent = null;
 let currentResidence = 'main';
 let studentsData = [];
+let groupsData = [];
 
 // Éléments DOM
 const studentSearch = document.getElementById('student-search');
@@ -14,6 +15,7 @@ const residenceButtons = document.querySelectorAll('.residence-button');
 const weatherInfo = document.querySelector('.weather-info');
 const dailyForecast = document.querySelector('.daily-forecast');
 const climateStats = document.querySelector('.climate-stats');
+const studentInfo = document.getElementById('student-info');
 
 // Gestionnaires d'événements
 searchButton.addEventListener('click', handleSearch);
@@ -25,6 +27,24 @@ residenceButtons.forEach(button => {
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadStudentsData();
+        
+        // Récupérer l'email de l'étudiant connecté
+        const userEmail = sessionStorage.getItem('userEmail');
+        if (userEmail) {
+            // Trouver l'étudiant dans les données
+            currentStudent = studentsData.find(s => s.email === userEmail);
+            if (currentStudent) {
+                updateStudentDisplay();
+                // Vérifier si l'étudiant a des résidences
+                if (currentStudent.main || currentStudent.secondary) {
+                    updateWeatherDisplay();
+                } else {
+                    showError('Aucune résidence trouvée pour cet utilisateur');
+                }
+            } else {
+                showError('Étudiant non trouvé');
+            }
+        }
     } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
         showError('Erreur lors du chargement des données des étudiants');
@@ -39,11 +59,18 @@ async function loadStudentsData() {
             throw new Error('Erreur lors du chargement des données');
         }
         const data = await response.json();
-        studentsData = data;
-        updateStudentsList();
+        
+        // Stocker les données des groupes
+        groupsData = data.groups || [];
+        
+        // Combiner les étudiants et les admins dans un seul tableau
+        studentsData = [...(data.students || []), ...(data.admins || [])];
         
         // Synchroniser avec la base de données
         await syncWithDatabase();
+        
+        // Mettre à jour l'interface
+        updateStudentsList();
     } catch (error) {
         console.error('Erreur:', error);
         showError('Erreur lors du chargement des données');
@@ -130,7 +157,12 @@ async function handleSearch() {
         if (student) {
             currentStudent = student;
             updateStudentDisplay();
-            updateWeatherDisplay();
+            // Ne pas mettre à jour l'affichage météo si l'utilisateur n'a pas de résidence
+            if (student.main || student.secondary) {
+                updateWeatherDisplay();
+            } else {
+                showError('Aucune résidence trouvée pour cet utilisateur');
+            }
             // Synchroniser après la recherche
             await syncWithDatabase();
         } else {
@@ -171,15 +203,20 @@ async function updateWeatherDisplay() {
 }
 
 function updateStudentDisplay() {
-    // Mettre à jour l'affichage des informations de l'étudiant
     const studentInfo = document.querySelector('.student-info');
-    if (!studentInfo) return;
+    if (!studentInfo || !currentStudent) return;
+
+    const group = currentStudent.group_id ? 
+        groupsData.find(g => g.id === currentStudent.group_id) : null;
 
     studentInfo.innerHTML = `
         <h3>${currentStudent.name}</h3>
         <p>Email: ${currentStudent.email}</p>
-        <p>Résidence principale: ${currentStudent.main.location.name}</p>
-        ${currentStudent.secondary ? `<p>Résidence secondaire: ${currentStudent.secondary.location.name}</p>` : ''}
+        ${group ? `<p>Groupe: ${group.name}</p>` : ''}
+        ${currentStudent.main ? 
+            `<p>Résidence principale: ${currentStudent.main.location.name}</p>` : ''}
+        ${currentStudent.secondary ? 
+            `<p>Résidence secondaire: ${currentStudent.secondary.location.name}</p>` : ''}
     `;
 }
 
@@ -239,3 +276,34 @@ function showError(message) {
     
     setTimeout(() => errorDiv.remove(), 5000);
 }
+// Ajoutez cette section après vos autres gestionnaires d'événements
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        email: document.getElementById('identifier').value,
+        password: document.getElementById('password').value
+    };
+
+    try {
+        const response = await fetch(`${BASE_URL}/php/login.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'login',
+                ...formData 
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = 'index.html';
+        } else {
+            showError(data.message || 'Erreur de connexion');
+        }
+    } catch (error) {
+        showError('Erreur réseau');
+        console.error('Erreur:', error);
+    }
+});

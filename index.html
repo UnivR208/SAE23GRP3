@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Windy - Climatomètre BUT1 R&T</title>
     <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/windy.css">
 </head>
 <body>
     <div class="container">
@@ -28,9 +29,9 @@
         <div class="section">
             <h2>Résidences</h2>
             <div class="residence-controls">
-                <button id="main-residence" disabled>Résidence Principale</button>
-                <button id="secondary-residence" disabled>Résidence Secondaire</button>
-                <button id="other-residence" disabled>Autre Résidence</button>
+                <button id="main-residence" class="residence-button" data-residence="main" disabled>Résidence Principale</button>
+                <button id="secondary-residence" class="residence-button" data-residence="secondary" disabled>Résidence Secondaire</button>
+                <button id="other-residence" class="residence-button" data-residence="other" disabled>Autre Résidence</button>
             </div>
 
             <div id="add-residence-form" style="margin-top: 20px;">
@@ -80,15 +81,13 @@
     <script src="scripts/weather.js"></script>
 
     <img src="img/cloud 2 trans.svg" alt="Nuage" class="cloud cloud1" />
-  <img src="img/cloud 3 trans.svg" alt="Nuage" class="cloud cloud2" />
-  <img src="img/cloud 5 trans.svg" alt="Nuage" class="cloud cloud3" />
-  <img src="img/cloud 6 trans.svg" alt="Nuage" class="cloud cloud4" />
-  <img src="img/cloud 7 trans.svg" alt="Nuage" class="cloud cloud5" />
-  <img src="img/cloud 8 trans.svg" alt="Nuage" class="cloud cloud6" />
+    <img src="img/cloud 3 trans.svg" alt="Nuage" class="cloud cloud2" />
+    <img src="img/cloud 5 trans.svg" alt="Nuage" class="cloud cloud3" />
+    <img src="img/cloud 6 trans.svg" alt="Nuage" class="cloud cloud4" />
+    <img src="img/cloud 7 trans.svg" alt="Nuage" class="cloud cloud5" />
+    <img src="img/cloud 8 trans.svg" alt="Nuage" class="cloud cloud6" />
 
-  <!-- Étoiles -->
-  <img src="img/cloud 4 trans.svg" alt="Étoile" class="star star1" />
-  <img src="img/cloud 1 trans.svg" alt="Étoile" class="star star2" />
-
+    <img src="img/cloud 4 trans.svg" alt="Étoile" class="star star1" />
+    <img src="img/cloud 1 trans.svg" alt="Étoile" class="star star2" />
 </body>
 </html> 

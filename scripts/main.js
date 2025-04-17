@@ -1,4 +1,10 @@
+// Configuration
+const BASE_URL = 'https://rt-projet.pu-pm.univ-fcomte.fr/users/tdavid';
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Ajouter la classe de chargement au body
+    document.body.classList.add('loading');
+
     const weatherManager = new WeatherManager();
 
     // Éléments du DOM
@@ -24,12 +30,12 @@ document.addEventListener('DOMContentLoaded', function() {
     startDateInput.value = today;
     
     // Récupérer les informations de l'utilisateur connecté
-    const userId = sessionStorage.getItem('userId');
+    const userEmail = sessionStorage.getItem('userEmail');
     const userName = sessionStorage.getItem('userName');
 
-    if (userId && userName) {
-        studentInfo.innerHTML = `<p>Étudiant connecté : ${userName} (${userId})</p>`;
-        loadStudentData(userId);
+    if (userEmail && userName) {
+        studentInfo.innerHTML = `<p>Étudiant connecté : ${userName} (${userEmail})</p>`;
+        loadStudentData(userEmail);
     }
 
     // Gestion de la géolocalisation
@@ -55,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Essayer d'obtenir le nom de la ville pour l'affichage
                     try {
                         const response = await fetch(
-                            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+                            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=fr`
                         );
                         const data = await response.json();
                         const city = data.address.city || data.address.town || data.address.village || data.address.municipality;
@@ -113,25 +119,41 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Gestion du changement de résidence
-    mainResidence.addEventListener('click', () => {
-        mainResidence.disabled = true;
-        secondaryResidence.disabled = false;
-        otherResidence.disabled = false;
-        loadResidenceData('main');
-    });
+    function handleResidenceClick(residenceType) {
+        console.log('Clic sur la résidence:', residenceType); // Debug
+        const residence = currentResidences?.find(r => r.type === residenceType);
+        console.log('Résidence trouvée:', residence); // Debug
+        
+        if (residence) {
+            // Mettre à jour l'interface visuelle
+            document.querySelectorAll('.residence-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const clickedButton = document.querySelector(`[data-residence="${residenceType}"]`);
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
+            
+            // Charger les données météo
+            loadResidenceData(residenceType, residence).then(() => {
+                console.log('Données météo chargées pour:', residenceType); // Debug
+            }).catch(error => {
+                console.error('Erreur lors du chargement des données:', error);
+                showError('Erreur lors du chargement des données météo');
+            });
+        } else {
+            console.log('Aucune résidence trouvée pour:', residenceType); // Debug
+            showError(`Aucune résidence ${residenceType} trouvée`);
+        }
+    }
 
-    secondaryResidence.addEventListener('click', () => {
-        mainResidence.disabled = false;
-        secondaryResidence.disabled = true;
-        otherResidence.disabled = false;
-        loadResidenceData('secondary');
-    });
-
-    otherResidence.addEventListener('click', () => {
-        mainResidence.disabled = false;
-        secondaryResidence.disabled = false;
-        otherResidence.disabled = true;
-        loadResidenceData('other');
+    // Ajouter les gestionnaires d'événements pour les boutons de résidence
+    document.querySelectorAll('.residence-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const residenceType = button.getAttribute('data-residence');
+            handleResidenceClick(residenceType);
+        });
     });
 
     // Gestion de l'ajout d'une résidence
@@ -151,13 +173,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Si on a des coordonnées GPS stockées, les utiliser directement
             if (cityNameInput.dataset.lat && cityNameInput.dataset.lon) {
                 location = {
-                    name: cityInput,
+                    name: cityInput.split(' (')[0], // Extraire le nom de la ville sans les coordonnées
                     lat: parseFloat(cityNameInput.dataset.lat),
                     lon: parseFloat(cityNameInput.dataset.lon)
                 };
             } else {
                 // Chercher par nom de ville
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityInput)}&format=json&limit=1`);
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityInput)}&format=json&limit=1&accept-language=fr`);
                 const data = await response.json();
 
                 if (data.length === 0) {
@@ -166,27 +188,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 location = {
-                    name: cityInput,
+                    name: data[0].display_name.split(',')[0], // Prendre le premier élément (nom de la ville)
                     lat: parseFloat(data[0].lat),
                     lon: parseFloat(data[0].lon)
                 };
             }
 
+            // Récupérer les données actuelles
+            const response = await fetch(`${BASE_URL}/data/students.json`);
+            const studentData = await response.json();
+
+            // Trouver l'étudiant actuel
+            const currentStudent = studentData.students.find(s => s.email === userEmail);
+            if (!currentStudent) {
+                throw new Error('Étudiant non trouvé');
+            }
+
+            // Mettre à jour la résidence dans le JSON
+            currentStudent[residenceType] = {
+                location: location,
+                startDate: startDate,
+                endDate: endDate
+            };
+
             // Envoyer la requête à l'API
-            const apiResponse = await fetch('/php/sync.php', {
+            const apiResponse = await fetch(`${BASE_URL}/php/sync.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    action: 'add',
-                    user_id: sessionStorage.getItem('userId'),
-                    type: residenceType,
-                    city_name: location.name,
-                    latitude: location.lat,
-                    longitude: location.lon,
-                    start_date: startDate,
-                    end_date: endDate
+                    action: 'add_residence',
+                    user_email: userEmail,
+                    residence: {
+                        name: location.name,
+                        location_lat: location.lat,
+                        location_lng: location.lon,
+                        type: residenceType === 'other' ? 'secondary' : residenceType, // Convertir 'other' en 'secondary'
+                        start_date: startDate,
+                        end_date: endDate
+                    }
                 })
             });
 
@@ -194,16 +235,25 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (result.success) {
                 // Recharger les données de l'étudiant
-                await loadStudentData(sessionStorage.getItem('userId'));
+                await loadStudentData(userEmail);
                 
                 // Réinitialiser le formulaire
                 cityNameInput.value = '';
                 cityNameInput.dataset.lat = '';
                 cityNameInput.dataset.lon = '';
-                startDateInput.value = '';
+                startDateInput.value = today;
                 endDateInput.value = '';
                 
                 showAddResidenceError('Résidence ajoutée avec succès', 'green');
+                
+                // Mettre à jour l'affichage de la résidence
+                if (residenceType === 'main') {
+                    loadResidenceData('main');
+                } else if (residenceType === 'secondary') {
+                    loadResidenceData('secondary');
+                } else {
+                    loadResidenceData('other');
+                }
             } else {
                 throw new Error(result.message || 'Erreur lors de l\'ajout de la résidence');
             }
@@ -253,222 +303,129 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // Fonction pour sauvegarder dans le fichier JSON
-    async function saveToJSON(studentData) {
-        try {
-            // Sauvegarder d'abord dans le sessionStorage comme backup
-            sessionStorage.setItem('studentData', JSON.stringify(studentData));
-
-            // En mode développement, on ne peut pas écrire directement dans le fichier
-            // On affiche un message pour indiquer comment mettre à jour le fichier
-            console.log('Pour mettre à jour le fichier students.json, copiez le contenu suivant :');
-            console.log(JSON.stringify(studentData, null, 4));
-            
-            return true;
-        } catch (error) {
-            console.error('Erreur de sauvegarde JSON:', error);
-            return false;
+    // Fonction pour mettre à jour l'affichage des résidences
+    function updateResidenceDisplay(mainResidence, secondaryResidence) {
+        const mainResidenceDiv = document.getElementById('main-residence');
+        const secondaryResidenceDiv = document.getElementById('secondary-residence');
+        
+        if (mainResidence) {
+            mainResidenceDiv.innerHTML = `
+                <h3>Résidence Principale</h3>
+                <p>${mainResidence.name}</p>
+                <p>Du ${formatDate(mainResidence.start_date)} au ${formatDate(mainResidence.end_date)}</p>
+            `;
+            mainResidenceDiv.disabled = false;
+        } else {
+            mainResidenceDiv.innerHTML = 'Résidence Principale';
+            mainResidenceDiv.disabled = true;
+        }
+        
+        if (secondaryResidence) {
+            secondaryResidenceDiv.innerHTML = `
+                <h3>Résidence Secondaire</h3>
+                <p>${secondaryResidence.name}</p>
+                <p>Du ${formatDate(secondaryResidence.start_date)} au ${formatDate(secondaryResidence.end_date)}</p>
+            `;
+            secondaryResidenceDiv.disabled = false;
+        } else {
+            secondaryResidenceDiv.innerHTML = 'Résidence Secondaire';
+            secondaryResidenceDiv.disabled = true;
         }
     }
 
-    // Fonction pour supprimer une résidence
-    async function deleteResidence(residenceType) {
+    // Variable pour stocker les résidences actuelles
+    let currentResidences = [];
+
+    async function loadStudentData(email) {
         try {
-            const userId = sessionStorage.getItem('userId');
-            if (!userId) {
-                throw new Error('Utilisateur non connecté');
-            }
-
-            // Demander confirmation avant de supprimer
-            if (!confirm('Êtes-vous sûr de vouloir supprimer cette résidence ?')) {
-                return;
-            }
-
-            const response = await fetch('/php/sync.php', {
+            // Récupérer d'abord les informations de l'utilisateur
+            const userResponse = await fetch(`${BASE_URL}/php/api/user.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    action: 'delete',
-                    user_id: userId,
-                    type: residenceType
+                    action: 'get_user',
+                    user_email: email
                 })
             });
 
-            const result = await response.json();
+            if (!userResponse.ok) {
+                throw new Error(`Erreur HTTP: ${userResponse.status}`);
+            }
+
+            const userData = await userResponse.json();
             
-            if (result.success) {
-                // Recharger les données de l'étudiant
-                await loadStudentData(userId);
-                showAddResidenceError('Résidence supprimée avec succès', 'green');
-            } else {
-                throw new Error(result.message || 'Erreur lors de la suppression');
-            }
-        } catch (error) {
-            console.error('Erreur lors de la suppression:', error);
-            showAddResidenceError(error.message || 'Erreur lors de la suppression de la résidence');
-        }
-    }
-
-    // Fonction pour mettre à jour l'interface d'ajout
-    function updateAddInterface(student) {
-        // Initialiser les résidences si elles n'existent pas
-        if (!student.main) student.main = {};
-        if (!student.secondary) student.secondary = {};
-        if (!student.other) student.other = {};
-
-        const residenceCount = [student.main, student.secondary, student.other]
-            .filter(r => r && r.startDate).length;
-
-        // Masquer les options déjà utilisées dans le select
-        const options = residenceTypeSelect.options;
-        for (let i = 0; i < options.length; i++) {
-            const type = options[i].value;
-            options[i].disabled = student[type] && student[type].startDate !== undefined;
-        }
-
-        // Si toutes les résidences sont utilisées, masquer le formulaire d'ajout
-        addResidenceForm.style.display = residenceCount >= 3 ? 'none' : 'block';
-
-        // Sélectionner automatiquement la première option disponible
-        for (let i = 0; i < options.length; i++) {
-            if (!options[i].disabled) {
-                residenceTypeSelect.selectedIndex = i;
-                break;
-            }
-        }
-    }
-
-    async function loadStudentData(studentId) {
-        try {
-            // Essayer d'abord de charger depuis le fichier JSON
-            let studentData;
-            try {
-                const response = await fetch('../data/students.json');
-                studentData = await response.json();
-            } catch (error) {
-                // Si échec, utiliser le sessionStorage
-                studentData = JSON.parse(sessionStorage.getItem('studentData'));
+            if (!userData.success) {
+                console.error('Erreur API user:', userData.message);
+                // On continue même si on ne peut pas récupérer le nom, on affichera juste l'email
             }
 
-            const student = studentData?.students.find(s => s.id === studentId);
+            // Mettre à jour l'affichage du nom de l'étudiant
+            const studentInfo = document.getElementById('student-info');
+            if (studentInfo) {
+                const userName = userData.success ? userData.user.name : 'Utilisateur';
+                studentInfo.innerHTML = `<p>Étudiant connecté : ${userName} (${email})</p>`;
+            }
 
-            if (student) {
-                // Mettre à jour l'interface d'ajout
-                updateAddInterface(student);
+            // Charger les résidences
+            const response = await fetch(`${BASE_URL}/php/api/residence.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'get_residences',
+                    user_email: email
+                })
+            });
 
-                // Vérifier si l'étudiant a des résidences
-                const hasResidences = student.main.startDate || student.secondary.startDate || (student.other && student.other.startDate);
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
 
-                if (!hasResidences) {
-                    studentInfo.innerHTML = `
-                        <p>Nom : ${student.name}</p>
-                        <p>Email : ${student.email}</p>
-                        <div style="margin: 20px 0; text-align: center;">
-                            <p style="color: #666; font-size: 1.1em;">
-                                Aucune résidence n'est enregistrée. 
-                                Veuillez ajouter une résidence en utilisant le formulaire ci-dessous.
-                            </p>
-                        </div>
-                    `;
-                    
-                    // Désactiver tous les boutons de résidence
-                    mainResidence.disabled = true;
-                    secondaryResidence.disabled = true;
-                    otherResidence.disabled = true;
-
-                    // Effacer les sections météo
-                    currentWeather.innerHTML = '';
-                    forecast.innerHTML = '';
-                    
-                    return;
+            const data = await response.json();
+            
+            if (data.success) {
+                // Stocker les résidences pour les utiliser plus tard
+                currentResidences = data.residences;
+                
+                // Mettre à jour l'état des boutons en fonction des résidences disponibles
+                const mainResidenceBtn = document.getElementById('main-residence');
+                const secondaryResidenceBtn = document.getElementById('secondary-residence');
+                const otherResidenceBtn = document.getElementById('other-residence');
+                
+                const mainResidence = currentResidences.find(r => r.type === 'main');
+                const secondaryResidence = currentResidences.find(r => r.type === 'secondary');
+                const otherResidence = currentResidences.find(r => r.type === 'other');
+                
+                // Activer/désactiver les boutons en fonction des résidences disponibles
+                if (mainResidenceBtn) {
+                    mainResidenceBtn.disabled = !mainResidence;
                 }
-
-                // Vérifier la validité des périodes d'étude
-                const mainStageStatus = student.main && student.main.startDate ? checkDateValidity(student.main.startDate, student.main.endDate) : { isValid: false, message: "Pas de résidence principale" };
-                const secondaryStageStatus = student.secondary && student.secondary.startDate ? checkDateValidity(student.secondary.startDate, student.secondary.endDate) : { isValid: false, message: "Pas de résidence secondaire" };
-                const otherStageStatus = student.other && student.other.startDate ? checkDateValidity(student.other.startDate, student.other.endDate) : { isValid: false, message: "Pas de résidence alternative" };
-
-                // Fonction pour formater les dates
-                const formatDate = (dateStr) => {
-                    if (!dateStr) return '';
-                    const date = new Date(dateStr);
-                    return date.toLocaleDateString('fr-FR');
-                };
-
-                // Fonction pour créer le bouton de suppression
-                const createDeleteButton = (type) => `
-                    <button class="delete-btn" onclick="deleteResidence('${type}')" title="Supprimer cette résidence">
-                        🗑️
-                    </button>
-                `;
-
-                studentInfo.innerHTML = `
-                    <p>Nom : ${student.name}</p>
-                    <p>Email : ${student.email}</p>
-                    ${student.main && student.main.startDate ? `
-                        <div style="margin: 10px 0;">
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <p><strong>Résidence Principale ${student.main.location ? `(${student.main.location.name})` : ''}</strong></p>
-                                ${createDeleteButton('main')}
-                            </div>
-                            <p style="margin: 5px 0;">
-                                <span style="color: #666;">Période : du ${formatDate(student.main.startDate)} au ${formatDate(student.main.endDate)}</span>
-                            </p>
-                            <p style="color: ${mainStageStatus.isValid ? 'green' : 'red'}">
-                                ${mainStageStatus.message}
-                            </p>
-                        </div>
-                    ` : ''}
-                    ${student.secondary && student.secondary.startDate ? `
-                        <div style="margin: 10px 0;">
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <p><strong>Résidence Secondaire ${student.secondary.location ? `(${student.secondary.location.name})` : ''}</strong></p>
-                                ${createDeleteButton('secondary')}
-                            </div>
-                            <p style="margin: 5px 0;">
-                                <span style="color: #666;">Période : du ${formatDate(student.secondary.startDate)} au ${formatDate(student.secondary.endDate)}</span>
-                            </p>
-                            <p style="color: ${secondaryStageStatus.isValid ? 'green' : 'red'}">
-                                ${secondaryStageStatus.message}
-                            </p>
-                        </div>
-                    ` : ''}
-                    ${student.other && student.other.startDate ? `
-                        <div style="margin: 10px 0;">
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <p><strong>Autre Résidence ${student.other.location ? `(${student.other.location.name})` : ''}</strong></p>
-                                ${createDeleteButton('other')}
-                            </div>
-                            <p style="margin: 5px 0;">
-                                <span style="color: #666;">Période : du ${formatDate(student.other.startDate)} au ${formatDate(student.other.endDate)}</span>
-                            </p>
-                            <p style="color: ${otherStageStatus.isValid ? 'green' : 'red'}">
-                                ${otherStageStatus.message}
-                            </p>
-                        </div>
-                    ` : ''}
-                `;
-
-                // Désactiver les boutons si la période n'est pas valide
-                mainResidence.disabled = !mainStageStatus.isValid;
-                secondaryResidence.disabled = !secondaryStageStatus.isValid;
-                otherResidence.disabled = !otherStageStatus.isValid;
-
-                // Charger les données de la première résidence valide
-                if (mainStageStatus.isValid) {
-                    loadResidenceData('main', student);
-                } else if (secondaryStageStatus.isValid) {
-                    loadResidenceData('secondary', student);
-                } else if (otherStageStatus.isValid) {
-                    loadResidenceData('other', student);
-                } else {
-                    currentWeather.innerHTML = '<p>Aucune période d\'étude en cours</p>';
-                    forecast.innerHTML = '';
+                if (secondaryResidenceBtn) {
+                    secondaryResidenceBtn.disabled = !secondaryResidence;
+                }
+                if (otherResidenceBtn) {
+                    otherResidenceBtn.disabled = !otherResidence;
+                }
+                
+                // Mettre à jour l'affichage avec les résidences
+                updateResidenceDisplay(mainResidence, secondaryResidence);
+                
+                // Si une résidence est active, charger sa météo
+                if (mainResidence) {
+                    loadResidenceData('main', mainResidence);
+                    // Mettre en évidence la résidence principale par défaut
+                    if (mainResidenceBtn) mainResidenceBtn.classList.add('active');
+                } else if (secondaryResidence) {
+                    loadResidenceData('secondary', secondaryResidence);
+                    // Mettre en évidence la résidence secondaire par défaut
+                    if (secondaryResidenceBtn) secondaryResidenceBtn.classList.add('active');
                 }
             } else {
-                showError('Étudiant non trouvé');
+                console.error('Erreur API residence:', data.message);
+                showError('Erreur lors du chargement des résidences');
             }
         } catch (error) {
             console.error('Erreur lors du chargement des données:', error);
@@ -476,27 +433,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function loadResidenceData(residenceType, studentData) {
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('fr-FR');
+    }
+
+    async function loadResidenceData(residenceType, residenceData) {
         try {
-            if (!studentData) {
-                const response = await fetch('../data/students.json');
-                const data = await response.json();
-                studentData = data.students.find(s => s.id === userId);
-            }
-
-            if (!studentData) {
-                showError('Données étudiant non trouvées');
-                return;
-            }
-
-            const residence = studentData[residenceType];
+            console.log('Chargement des données pour:', residenceType, residenceData);
             
-            if (!residence) {
-                showError(`Résidence ${residenceType} non trouvée`);
-                return;
+            if (!residenceData) {
+                throw new Error(`Résidence ${residenceType} non trouvée`);
             }
 
-            const dateStatus = checkDateValidity(residence.startDate, residence.endDate);
+            const dateStatus = checkDateValidity(residenceData.start_date, residenceData.end_date);
+            console.log('Statut des dates:', dateStatus);
 
             if (!dateStatus.isValid) {
                 currentWeather.innerHTML = `<p style="color: red">${dateStatus.message}</p>`;
@@ -504,24 +455,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const location = residence.location;
+            const location = {
+                lat: residenceData.location_lat,
+                lon: residenceData.location_lng,
+                name: residenceData.name
+            };
             
-            // Récupération des données météo
+            console.log('Récupération des données météo pour:', location);
             const weatherData = await weatherManager.getWeather(location.lat, location.lon);
+            console.log('Données météo reçues:', weatherData);
             
-            // Affichage de la météo actuelle
-            currentWeather.innerHTML = `
-                <h3>Météo à ${location.name}</h3>
-                <div>
-                    <p>${weatherManager.getWeatherIcon(weatherData.current.weather_code)}</p>
-                    <p>Température : ${weatherManager.formatTemperature(weatherData.current.temperature_2m)}</p>
-                    <p>Humidité : ${weatherData.current.relative_humidity_2m}%</p>
-                    <p>Précipitations : ${weatherData.current.precipitation} mm</p>
-                    <p>Vent : ${weatherData.current.wind_speed_10m} km/h</p>
-                </div>
-            `;
+            // Mise à jour de l'interface
+            updateWeatherDisplay(weatherData, location);
+            
+        } catch (error) {
+            console.error('Erreur lors du chargement des données de résidence:', error);
+            showError('Erreur lors du chargement des données de résidence');
+        }
+    }
 
-            // Affichage des prévisions (5 jours)
+    function updateWeatherDisplay(weatherData, location) {
+        console.log('Mise à jour de l\'affichage météo avec:', weatherData, location);
+        
+        if (!weatherData || !weatherData.current) {
+            console.error('Données météo invalides:', weatherData);
+            showError('Données météo invalides');
+            return;
+        }
+
+        // Affichage de la météo actuelle
+        currentWeather.innerHTML = `
+            <h3>Météo à ${location.name}</h3>
+            <div>
+                <p>${weatherManager.getWeatherIcon(weatherData.current.weather_code)}</p>
+                <p>Température : ${weatherManager.formatTemperature(weatherData.current.temperature_2m)}</p>
+                <p>Humidité : ${weatherData.current.relative_humidity_2m}%</p>
+                <p>Précipitations : ${weatherData.current.precipitation} mm</p>
+                <p>Vent : ${weatherData.current.wind_speed_10m} km/h</p>
+            </div>
+        `;
+
+        // Affichage des prévisions (5 jours)
+        if (weatherData.forecast && weatherData.forecast.time) {
             const forecastHTML = weatherData.forecast.time
                 .slice(0, 5)
                 .map((date, index) => `
@@ -533,82 +508,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p>Probabilité de pluie: ${weatherData.forecast.precipitation_probability_max[index]}%</p>
                     </div>
                 `).join('');
-
+            
             forecast.innerHTML = `
-                <h3>Prévisions sur 5 jours</h3>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <h3>Prévisions pour les prochains jours</h3>
+                <div style="display: flex; overflow-x: auto;">
                     ${forecastHTML}
                 </div>
             `;
-
-        } catch (error) {
-            console.error('Erreur lors du chargement des données de résidence:', error);
-            showError('Erreur lors du chargement des données de résidence');
+        } else {
+            forecast.innerHTML = '<p>Aucune prévision disponible</p>';
         }
     }
 
     function showError(message) {
         const errorDiv = document.createElement('div');
-        errorDiv.style.color = 'red';
+        errorDiv.className = 'error-message';
         errorDiv.textContent = message;
-        studentInfo.appendChild(errorDiv);
-        setTimeout(() => errorDiv.remove(), 3000);
+        errorDiv.style.backgroundColor = '#f44336';
+        errorDiv.style.color = 'white';
+        errorDiv.style.padding = '10px';
+        errorDiv.style.margin = '10px 0';
+        errorDiv.style.borderRadius = '5px';
+        
+        const container = document.querySelector('.container');
+        container.insertBefore(errorDiv, container.firstChild);
+        
+        setTimeout(() => errorDiv.remove(), 5000);
     }
-
-    // Exposer la fonction deleteResidence globalement
-    window.deleteResidence = deleteResidence;
-
-    // Fonction pour synchroniser la base de données
-    async function syncDatabase() {
-        try {
-            const response = await fetch('/php/sync.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    action: 'sync'
-                })
-            });
-
-            const result = await response.json();
-            if (!result.success) {
-                console.error('Erreur de synchronisation:', result.message);
-            }
-        } catch (error) {
-            console.error('Erreur lors de la synchronisation:', error);
-        }
-    }
-
-    // Synchroniser au démarrage
-    document.addEventListener('DOMContentLoaded', async () => {
-        await syncDatabase();
-    });
-
-    // Synchroniser à la connexion
-    async function handleLogin(userId, userName) {
-        sessionStorage.setItem('userId', userId);
-        sessionStorage.setItem('userName', userName);
-        await syncDatabase();
-        await loadStudentData(userId);
-    }
-
-    // Synchroniser à la déconnexion
-    async function handleLogout() {
-        try {
-            await syncDatabase();
-            sessionStorage.removeItem('userId');
-            sessionStorage.removeItem('userName');
-            window.location.href = 'login.html';
-        } catch (error) {
-            console.error('Erreur lors de la déconnexion:', error);
-            // Même en cas d'erreur, on continue la déconnexion
-            sessionStorage.removeItem('userId');
-            sessionStorage.removeItem('userName');
-            window.location.href = 'login.html';
-        }
-    }
-
-    // Ajouter le gestionnaire d'événements pour le bouton de déconnexion
-    document.getElementById('logout-button').addEventListener('click', handleLogout);
 }); 

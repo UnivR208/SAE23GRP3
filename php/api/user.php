@@ -1,93 +1,57 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST,GET,PUT,DELETE");
-header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json');
 
-include_once '../config/database.php';
-include_once 'sync.php';
+require_once '../config/database.php';
 
-class User {
-    private $conn;
-    private $table_name = "users";
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
-    public $id;
-    public $name;
-    public $email;
-    public $password;
-    public $role;
+try {
+    $database = new Database();
+    $conn = $database->getConnection();
 
-    public function __construct($db) {
-        $this->conn = $db;
-    }
+    $jsonData = file_get_contents('php://input');
+    $data = json_decode($jsonData, true);
 
-    // Créer un utilisateur
-    public function create() {
-        $query = "INSERT INTO " . $this->table_name . "
-                SET
-                    id = :id,
-                    name = :name,
-                    email = :email,
-                    password = :password,
-                    role = :role";
+    if (isset($data['action'])) {
+        switch ($data['action']) {
+            case 'get_user':
+                if (!isset($data['user_email'])) {
+                    throw new Exception("Email utilisateur non spécifié");
+                }
 
-        $stmt = $this->conn->prepare($query);
+                // Récupérer les informations de l'utilisateur
+                $stmt = $conn->prepare("SELECT id, name, email, role FROM users WHERE email = :email");
+                $stmt->execute([':email' => $data['user_email']]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Nettoyer les données
-        $this->id = htmlspecialchars(strip_tags($this->id));
-        $this->name = htmlspecialchars(strip_tags($this->name));
-        $this->email = htmlspecialchars(strip_tags($this->email));
-        $this->password = password_hash($this->password, PASSWORD_BCRYPT);
-        $this->role = htmlspecialchars(strip_tags($this->role));
+                if (!$user) {
+                    throw new Exception("Utilisateur non trouvé");
+                }
 
-        // Lier les valeurs
-        $stmt->bindParam(":id", $this->id);
-        $stmt->bindParam(":name", $this->name);
-        $stmt->bindParam(":email", $this->email);
-        $stmt->bindParam(":password", $this->password);
-        $stmt->bindParam(":role", $this->role);
+                echo json_encode([
+                    'success' => true,
+                    'user' => $user
+                ]);
+                break;
 
-        if($stmt->execute()) {
-            // Synchroniser après la création
-            $sync = new Sync($this->conn);
-            $sync->syncToJson();
-            return true;
+            default:
+                throw new Exception("Action non reconnue");
         }
-        return false;
+    } else {
+        throw new Exception("Action non spécifiée");
     }
-
-    // Lire un utilisateur
-    public function readOne() {
-        $query = "SELECT * FROM " . $this->table_name . " WHERE id = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $this->id);
-        $stmt->execute();
-        return $stmt;
-    }
-
-    // Lire tous les utilisateurs
-    public function readAll() {
-        $query = "SELECT * FROM " . $this->table_name;
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt;
-    }
-
-    // Vérifier les identifiants
-    public function login() {
-        $query = "SELECT * FROM " . $this->table_name . " WHERE email = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $this->email);
-        $stmt->execute();
-        
-        if($stmt->rowCount() > 0) {
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            if(password_verify($this->password, $row['password'])) {
-                return $row;
-            }
-        }
-        return false;
-    }
+} catch (Exception $e) {
+    error_log("Erreur API user: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
 }
 ?> 

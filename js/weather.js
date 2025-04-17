@@ -11,10 +11,12 @@ class WeatherManager {
         const cachedData = this.getFromCache(cacheKey);
         
         if (cachedData) {
+            console.log('Données météo récupérées depuis le cache pour:', location);
             return cachedData;
         }
 
         try {
+            console.log('Récupération des données météo depuis l\'API pour:', location);
             // Récupération des données actuelles
             const currentResponse = await fetch(
                 `${this.baseUrl}/forecast?latitude=${location.lat}&longitude=${location.lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,weather_code&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`
@@ -25,6 +27,13 @@ class WeatherManager {
             }
 
             const data = await currentResponse.json();
+            console.log('Données météo reçues de l\'API:', data);
+            
+            // Vérification de la structure des données
+            if (!data.current || !data.daily) {
+                throw new Error('Structure des données météo invalide');
+            }
+
             this.saveToCache(cacheKey, data);
             return data;
         } catch (error) {
@@ -59,6 +68,7 @@ class WeatherManager {
     }
 
     static getWeatherIcon(weatherCode) {
+        console.log('Récupération de l\'icône pour le code météo:', weatherCode);
         // Mapping des codes météo Open-Meteo vers les icônes
         const weatherIcons = {
             0: '☀️', // Clear sky
@@ -86,7 +96,9 @@ class WeatherManager {
             96: '⛈️', // Thunderstorm with slight hail
             99: '⛈️'  // Thunderstorm with heavy hail
         };
-        return weatherIcons[weatherCode] || '❓';
+        const icon = weatherIcons[weatherCode] || '❓';
+        console.log('Icône sélectionnée:', icon);
+        return icon;
     }
 
     static getWeatherDescription(weatherCode) {

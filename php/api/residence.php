@@ -1,143 +1,140 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST,GET,PUT,DELETE");
-header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json');
 
-include_once '../config/database.php';
-include_once 'sync.php';
+require_once '../config/database.php';
 
-class Residence {
-    private $conn;
-    private $table_name = "residences";
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
-    public $id;
-    public $user_id;
-    public $type;
-    public $city_name;
-    public $latitude;
-    public $longitude;
-    public $start_date;
-    public $end_date;
+try {
+    $database = new Database();
+    $conn = $database->getConnection();
 
-    public function __construct($db) {
-        $this->conn = $db;
-    }
+    $jsonData = file_get_contents('php://input');
+    $data = json_decode($jsonData, true);
 
-    // Créer une résidence
-    public function create() {
-        $query = "INSERT INTO " . $this->table_name . "
-                SET
-                    user_id = :user_id,
-                    type = :type,
-                    city_name = :city_name,
-                    latitude = :latitude,
-                    longitude = :longitude,
-                    start_date = :start_date,
-                    end_date = :end_date";
+    if (isset($data['action'])) {
+        switch ($data['action']) {
+            case 'get_residences':
+                // Récupérer l'ID de l'utilisateur à partir de son email
+                $stmtGetUser = $conn->prepare("SELECT id FROM users WHERE email = :email");
+                $stmtGetUser->execute([':email' => $data['user_email']]);
+                $user = $stmtGetUser->fetch(PDO::FETCH_ASSOC);
 
-        $stmt = $this->conn->prepare($query);
+                if (!$user) {
+                    throw new Exception("Utilisateur non trouvé");
+                }
 
-        // Nettoyer les données
-        $this->user_id = htmlspecialchars(strip_tags($this->user_id));
-        $this->type = htmlspecialchars(strip_tags($this->type));
-        $this->city_name = htmlspecialchars(strip_tags($this->city_name));
-        $this->latitude = htmlspecialchars(strip_tags($this->latitude));
-        $this->longitude = htmlspecialchars(strip_tags($this->longitude));
-        $this->start_date = htmlspecialchars(strip_tags($this->start_date));
-        $this->end_date = htmlspecialchars(strip_tags($this->end_date));
+                // Récupérer les résidences de l'utilisateur
+                $stmtResidences = $conn->prepare("SELECT * FROM RESIDENCE WHERE user_id = :user_id");
+                $stmtResidences->execute([':user_id' => $user['id']]);
+                $residences = $stmtResidences->fetchAll(PDO::FETCH_ASSOC);
 
-        // Lier les valeurs
-        $stmt->bindParam(":user_id", $this->user_id);
-        $stmt->bindParam(":type", $this->type);
-        $stmt->bindParam(":city_name", $this->city_name);
-        $stmt->bindParam(":latitude", $this->latitude);
-        $stmt->bindParam(":longitude", $this->longitude);
-        $stmt->bindParam(":start_date", $this->start_date);
-        $stmt->bindParam(":end_date", $this->end_date);
+                echo json_encode([
+                    'success' => true,
+                    'residences' => $residences
+                ]);
+                break;
 
-        if($stmt->execute()) {
-            // Synchroniser après la création
-            $sync = new Sync($this->conn);
-            $sync->syncToJson();
-            return true;
+            case 'add_residence':
+                // Récupérer l'ID de l'utilisateur à partir de son email
+                $stmtGetUser = $conn->prepare("SELECT id FROM users WHERE email = :email");
+                $stmtGetUser->execute([':email' => $data['user_email']]);
+                $user = $stmtGetUser->fetch(PDO::FETCH_ASSOC);
+
+                if (!$user) {
+                    throw new Exception("Utilisateur non trouvé");
+                }
+
+                // Vérifier si une résidence du même type existe déjà
+                $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = :type");
+                $stmtCheck->execute([
+                    ':user_id' => $user['id'],
+                    ':type' => $data['residence']['type']
+                ]);
+                $existing = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+                if ($existing) {
+                    // Mettre à jour la résidence existante
+                    $stmtUpdate = $conn->prepare("UPDATE RESIDENCE SET 
+                        name = :name,
+                        location_lat = :location_lat,
+                        location_lng = :location_lng,
+                        start_date = :start_date,
+                        end_date = :end_date
+                        WHERE id = :id");
+                    
+                    $stmtUpdate->execute([
+                        ':id' => $existing['id'],
+                        ':name' => $data['residence']['name'],
+                        ':location_lat' => $data['residence']['location_lat'],
+                        ':location_lng' => $data['residence']['location_lng'],
+                        ':start_date' => $data['residence']['start_date'],
+                        ':end_date' => $data['residence']['end_date']
+                    ]);
+                } else {
+                    // Insérer une nouvelle résidence
+                    $stmtInsert = $conn->prepare("INSERT INTO RESIDENCE 
+                        (user_id, name, location_lat, location_lng, type, start_date, end_date)
+                        VALUES (:user_id, :name, :location_lat, :location_lng, :type, :start_date, :end_date)");
+                    
+                    $stmtInsert->execute([
+                        ':user_id' => $user['id'],
+                        ':name' => $data['residence']['name'],
+                        ':location_lat' => $data['residence']['location_lat'],
+                        ':location_lng' => $data['residence']['location_lng'],
+                        ':type' => $data['residence']['type'],
+                        ':start_date' => $data['residence']['start_date'],
+                        ':end_date' => $data['residence']['end_date']
+                    ]);
+                }
+
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Résidence ajoutée avec succès'
+                ]);
+                break;
+
+            case 'delete_residence':
+                // Récupérer l'ID de l'utilisateur à partir de son email
+                $stmtGetUser = $conn->prepare("SELECT id FROM users WHERE email = :email");
+                $stmtGetUser->execute([':email' => $data['user_email']]);
+                $user = $stmtGetUser->fetch(PDO::FETCH_ASSOC);
+
+                if (!$user) {
+                    throw new Exception("Utilisateur non trouvé");
+                }
+
+                // Supprimer la résidence
+                $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = :type");
+                $stmtDelete->execute([
+                    ':user_id' => $user['id'],
+                    ':type' => $data['residence_type']
+                ]);
+
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Résidence supprimée avec succès'
+                ]);
+                break;
+
+            default:
+                throw new Exception("Action non reconnue");
         }
-        return false;
+    } else {
+        throw new Exception("Action non spécifiée");
     }
-
-    // Lire toutes les résidences d'un utilisateur
-    public function readByUser() {
-        $query = "SELECT * FROM " . $this->table_name . " WHERE user_id = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $this->user_id);
-        $stmt->execute();
-        return $stmt;
-    }
-
-    // Lire toutes les résidences
-    public function readAll() {
-        $query = "SELECT * FROM " . $this->table_name;
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt;
-    }
-
-    // Mettre à jour une résidence
-    public function update() {
-        $query = "UPDATE " . $this->table_name . "
-                SET
-                    city_name = :city_name,
-                    latitude = :latitude,
-                    longitude = :longitude,
-                    start_date = :start_date,
-                    end_date = :end_date
-                WHERE
-                    user_id = :user_id AND type = :type";
-
-        $stmt = $this->conn->prepare($query);
-
-        // Nettoyer les données
-        $this->city_name = htmlspecialchars(strip_tags($this->city_name));
-        $this->latitude = htmlspecialchars(strip_tags($this->latitude));
-        $this->longitude = htmlspecialchars(strip_tags($this->longitude));
-        $this->start_date = htmlspecialchars(strip_tags($this->start_date));
-        $this->end_date = htmlspecialchars(strip_tags($this->end_date));
-        $this->user_id = htmlspecialchars(strip_tags($this->user_id));
-        $this->type = htmlspecialchars(strip_tags($this->type));
-
-        // Lier les valeurs
-        $stmt->bindParam(":city_name", $this->city_name);
-        $stmt->bindParam(":latitude", $this->latitude);
-        $stmt->bindParam(":longitude", $this->longitude);
-        $stmt->bindParam(":start_date", $this->start_date);
-        $stmt->bindParam(":end_date", $this->end_date);
-        $stmt->bindParam(":user_id", $this->user_id);
-        $stmt->bindParam(":type", $this->type);
-
-        if($stmt->execute()) {
-            // Synchroniser après la mise à jour
-            $sync = new Sync($this->conn);
-            $sync->syncToJson();
-            return true;
-        }
-        return false;
-    }
-
-    // Supprimer une résidence
-    public function delete() {
-        $query = "DELETE FROM " . $this->table_name . " WHERE user_id = ? AND type = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $this->user_id);
-        $stmt->bindParam(2, $this->type);
-        
-        if($stmt->execute()) {
-            // Synchroniser après la suppression
-            $sync = new Sync($this->conn);
-            $sync->syncToJson();
-            return true;
-        }
-        return false;
-    }
+} catch (Exception $e) {
+    error_log("Erreur API residence: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
 }
 ?> 

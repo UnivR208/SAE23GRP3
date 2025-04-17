@@ -11,10 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Connexion à la base de données
-$servername = "localhost";
-$username = "root";
-$password = "tom";
-$dbname = "tom";
+$servername = "mysql_serv";
+$username = "tdavid";
+$password = "ev6&il}[sv";
+$dbname = "tdavid_05";
 
 try {
     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
