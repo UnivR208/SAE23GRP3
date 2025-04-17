@@ -1,10 +1,10 @@
 <?php
 
 class Database {
-    private $host = "localhost";
-    private $db_name = "sae23";
-    private $username = "root";
-    private $password = "";
+    private $host = "mysql_serv";
+    private $db_name = "tdavid_05";
+    private $username = "tdavid";
+    private $password = "ev6&il}[sv";
     private $conn;
 
     public function getConnection() {
@@ -33,9 +33,17 @@ class Database {
         try {
             // Table des groupes
             $this->conn->exec("CREATE TABLE IF NOT EXISTS `groups` (
-                `id` INT PRIMARY KEY AUTO_INCREMENT,
+                `id` VARCHAR(10) PRIMARY KEY,
                 `name` VARCHAR(100) NOT NULL UNIQUE,
                 `description` TEXT
+            )");
+
+            // Table des résidences
+            $this->conn->exec("CREATE TABLE IF NOT EXISTS `residences` (
+                `id` INT PRIMARY KEY AUTO_INCREMENT,
+                `name` VARCHAR(100) NOT NULL,
+                `address` VARCHAR(255) NOT NULL,
+                `capacity` INT NOT NULL
             )");
 
             // Table des utilisateurs
@@ -44,20 +52,20 @@ class Database {
                 `name` VARCHAR(100) NOT NULL,
                 `email` VARCHAR(100) NOT NULL UNIQUE,
                 `password` VARCHAR(255) NOT NULL,
-                `role` ENUM('admin', 'user') NOT NULL DEFAULT 'user'
+                `role` ENUM('admin', 'student') NOT NULL DEFAULT 'student',
+                `residence_id` INT,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (`residence_id`) REFERENCES `residences`(`id`) ON DELETE SET NULL
             )");
 
-            // Table des résidences
-            $this->conn->exec("CREATE TABLE IF NOT EXISTS `residences` (
-                `id` INT PRIMARY KEY AUTO_INCREMENT,
+            // Table de relation utilisateurs-groupes
+            $this->conn->exec("CREATE TABLE IF NOT EXISTS `user_groups` (
                 `user_id` INT NOT NULL,
-                `name` VARCHAR(100) NOT NULL,
-                `location_lat` DECIMAL(10, 8) NOT NULL,
-                `location_lng` DECIMAL(11, 8) NOT NULL,
-                `type` ENUM('main', 'secondary', 'other') NOT NULL,
-                `start_date` DATE NOT NULL,
-                `end_date` DATE NOT NULL,
-                FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+                `group_id` VARCHAR(10) NOT NULL,
+                PRIMARY KEY (`user_id`, `group_id`),
+                FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+                FOREIGN KEY (`group_id`) REFERENCES `groups`(`id`) ON DELETE CASCADE
             )");
 
         } catch(PDOException $e) {
