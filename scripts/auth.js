@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const email = document.getElementById('identifier').value;
-        const password = document.getElementById('password').value;
 
         try {
             // Synchroniser avant la tentative de connexion
@@ -55,15 +54,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    action: 'login',
-                    email,
-                    password
-                })
+                body: JSON.stringify({ email })
             });
 
             const data = await response.json();
-            console.log('Réponse du serveur:', data); // Debug
+            console.log('Réponse du serveur:', data);
             
             if (data.success && data.user) {
                 // Stocker les informations de l'utilisateur
@@ -71,6 +66,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 sessionStorage.setItem('userName', data.user.name);
                 sessionStorage.setItem('userRole', data.user.role);
                 sessionStorage.setItem('userId', data.user.id);
+                sessionStorage.setItem('userLocations', JSON.stringify(data.user.locations));
+                sessionStorage.setItem('userGroups', JSON.stringify(data.user.groups));
                 sessionStorage.setItem('loggedIn', 'true');
                 
                 // Rediriger en fonction du rôle
@@ -83,7 +80,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 showError(data.message || 'Erreur de connexion');
             }
         } catch (error) {
-            console.error('Erreur de connexion:', error); // Debug
+            console.error('Erreur de connexion:', error);
             showError('Erreur réseau');
         }
     });

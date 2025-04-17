@@ -58,89 +58,89 @@ try {
         }
     }
 
-    // Synchroniser les résidences
-    if (isset($data['residences'])) {
-        error_log("Synchronisation des résidences...");
-        foreach ($data['residences'] as $residence) {
-            $stmt = $pdo->prepare("INSERT INTO residences (id, name, address, capacity) 
-                                 VALUES (:id, :name, :address, :capacity)
+    // Synchroniser les utilisateurs (étudiants et admins)
+    $allUsers = [];
+    if (isset($data['students'])) {
+        $allUsers = array_merge($allUsers, $data['students']);
+    }
+    if (isset($data['admins'])) {
+        $allUsers = array_merge($allUsers, $data['admins']);
+    }
+
+    foreach ($allUsers as $user) {
+        // Vérifier l'email
+        if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new Exception("Email invalide pour l'utilisateur : " . $user['name']);
+        }
+
+        // Insérer ou mettre à jour l'utilisateur
+        $stmt = $pdo->prepare("INSERT INTO users (id, name, email, role) 
+                             VALUES (:id, :name, :email, :role)
+                             ON DUPLICATE KEY UPDATE 
+                             name = :name, role = :role");
+        
+        $stmt->execute([
+            ':id' => $user['id'],
+            ':name' => $user['name'],
+            ':email' => $user['email'],
+            ':role' => $user['role'] === 'admin' ? 'admin' : 'student'
+        ]);
+
+        // Gérer les localisations
+        if (isset($user['main']) && isset($user['main']['location'])) {
+            $stmt = $pdo->prepare("INSERT INTO user_locations (user_id, name, latitude, longitude, type) 
+                                 VALUES (:user_id, :name, :latitude, :longitude, 'main')
                                  ON DUPLICATE KEY UPDATE 
-                                 name = :name, address = :address, capacity = :capacity");
+                                 name = :name, latitude = :latitude, longitude = :longitude");
             
             $stmt->execute([
-                ':id' => $residence['id'],
-                ':name' => $residence['name'],
-                ':address' => $residence['address'],
-                ':capacity' => $residence['capacity']
+                ':user_id' => $user['id'],
+                ':name' => $user['main']['location']['name'],
+                ':latitude' => $user['main']['location']['lat'],
+                ':longitude' => $user['main']['location']['lon']
+            ]);
+        }
+
+        if (isset($user['secondary']) && isset($user['secondary']['location'])) {
+            $stmt = $pdo->prepare("INSERT INTO user_locations (user_id, name, latitude, longitude, type) 
+                                 VALUES (:user_id, :name, :latitude, :longitude, 'secondary')
+                                 ON DUPLICATE KEY UPDATE 
+                                 name = :name, latitude = :latitude, longitude = :longitude");
+            
+            $stmt->execute([
+                ':user_id' => $user['id'],
+                ':name' => $user['secondary']['location']['name'],
+                ':latitude' => $user['secondary']['location']['lat'],
+                ':longitude' => $user['secondary']['location']['lon']
+            ]);
+        }
+
+        // Gérer les relations utilisateur-groupe
+        if (isset($user['group_id'])) {
+            $stmt = $pdo->prepare("INSERT INTO user_groups (user_id, group_id) 
+                                 VALUES (:user_id, :group_id)
+                                 ON DUPLICATE KEY UPDATE group_id = :group_id");
+            
+            $stmt->execute([
+                ':user_id' => $user['id'],
+                ':group_id' => $user['group_id']
             ]);
         }
     }
 
-    // Synchroniser les utilisateurs
-    if (isset($data['users'])) {
-        error_log("Synchronisation des utilisateurs...");
-        foreach ($data['users'] as $user) {
-            // Valider les données utilisateur
-            if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
-                throw new Exception("Email invalide pour l'utilisateur : " . $user['name']);
-            }
-            
-            if (empty($user['name']) || strlen($user['name']) > 100) {
-                throw new Exception("Nom invalide pour l'utilisateur : " . $user['email']);
-            }
-
-            // Vérifier si l'utilisateur existe déjà
-            $stmt = $pdo->prepare("SELECT id, password FROM users WHERE email = :email");
-            $stmt->execute([':email' => $user['email']]);
-            $existingUser = $stmt->fetch();
-
-            // Gérer le mot de passe
-            $password = $existingUser ? $existingUser['password'] : password_hash($user['password'], PASSWORD_DEFAULT);
-            if (!$existingUser && strlen($user['password']) < 8) {
-                throw new Exception("Le mot de passe doit contenir au moins 8 caractères pour : " . $user['email']);
-            }
-
-            if ($existingUser) {
-                // Mettre à jour l'utilisateur existant
-                $stmt = $pdo->prepare("UPDATE users SET 
-                    name = :name,
-                    role = :role,
-                    residence_id = :residence_id,
-                    updated_at = NOW()
-                    WHERE email = :email");
-            } else {
-                // Créer un nouvel utilisateur
-                $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, residence_id, created_at, updated_at) 
-                    VALUES (:name, :email, :password, :role, :residence_id, NOW(), NOW())");
-                $password = password_hash($user['password'], PASSWORD_DEFAULT);
-            }
-
-            $stmt->execute([
-                ':name' => $user['name'],
-                ':email' => $user['email'],
-                ':password' => $password,
-                ':role' => $user['role'],
-                ':residence_id' => $user['residence_id'] ?? null
-            ]);
-
-            // Gérer les relations utilisateur-groupe
-            if (isset($user['groups']) && is_array($user['groups'])) {
-                // Supprimer les anciennes relations
-                $stmt = $pdo->prepare("DELETE FROM user_groups WHERE user_id = (SELECT id FROM users WHERE email = :email)");
-                $stmt->execute([':email' => $user['email']]);
-
-                // Ajouter les nouvelles relations
-                foreach ($user['groups'] as $groupId) {
-                    $stmt = $pdo->prepare("INSERT INTO user_groups (user_id, group_id) 
-                        VALUES ((SELECT id FROM users WHERE email = :email), :group_id)");
-                    $stmt->execute([
-                        ':email' => $user['email'],
-                        ':group_id' => $groupId
-                    ]);
-                }
-            }
-        }
-    }
+    // Mettre à jour la météo moyenne des groupes
+    $stmt = $pdo->prepare("INSERT INTO group_weather (group_id, temperature_avg, humidity_avg, wind_speed_avg)
+                          SELECT 
+                              ug.group_id,
+                              AVG(w.temperature) as temperature_avg,
+                              AVG(w.humidity) as humidity_avg,
+                              AVG(w.wind_speed) as wind_speed_avg
+                          FROM user_groups ug
+                          JOIN user_locations ul ON ug.user_id = ul.user_id
+                          JOIN weather_data w ON ul.id = w.location_id
+                          WHERE w.timestamp >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
+                          GROUP BY ug.group_id");
+    $stmt->execute();
 
     // Valider la transaction
     $pdo->commit();

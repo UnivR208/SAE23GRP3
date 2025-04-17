@@ -35,37 +35,54 @@ class Database {
             $this->conn->exec("CREATE TABLE IF NOT EXISTS `groups` (
                 `id` VARCHAR(10) PRIMARY KEY,
                 `name` VARCHAR(100) NOT NULL UNIQUE,
-                `description` TEXT
-            )");
-
-            // Table des résidences
-            $this->conn->exec("CREATE TABLE IF NOT EXISTS `residences` (
-                `id` INT PRIMARY KEY AUTO_INCREMENT,
-                `name` VARCHAR(100) NOT NULL,
-                `address` VARCHAR(255) NOT NULL,
-                `capacity` INT NOT NULL
+                `description` TEXT,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )");
 
             // Table des utilisateurs
             $this->conn->exec("CREATE TABLE IF NOT EXISTS `users` (
-                `id` INT PRIMARY KEY AUTO_INCREMENT,
+                `id` VARCHAR(10) PRIMARY KEY,
                 `name` VARCHAR(100) NOT NULL,
                 `email` VARCHAR(100) NOT NULL UNIQUE,
-                `password` VARCHAR(255) NOT NULL,
                 `role` ENUM('admin', 'student') NOT NULL DEFAULT 'student',
-                `residence_id` INT,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )");
+
+            // Table des localisations des utilisateurs
+            $this->conn->exec("CREATE TABLE IF NOT EXISTS `user_locations` (
+                `id` INT PRIMARY KEY AUTO_INCREMENT,
+                `user_id` VARCHAR(10) NOT NULL,
+                `name` VARCHAR(100) NOT NULL,
+                `latitude` DECIMAL(10, 8) NOT NULL,
+                `longitude` DECIMAL(11, 8) NOT NULL,
+                `type` ENUM('main', 'secondary') NOT NULL,
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                FOREIGN KEY (`residence_id`) REFERENCES `residences`(`id`) ON DELETE SET NULL
+                FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+                UNIQUE KEY `unique_user_location_type` (`user_id`, `type`)
             )");
 
             // Table de relation utilisateurs-groupes
             $this->conn->exec("CREATE TABLE IF NOT EXISTS `user_groups` (
-                `user_id` INT NOT NULL,
+                `user_id` VARCHAR(10) NOT NULL,
                 `group_id` VARCHAR(10) NOT NULL,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (`user_id`, `group_id`),
                 FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
                 FOREIGN KEY (`group_id`) REFERENCES `groups`(`id`) ON DELETE CASCADE
+            )");
+
+            // Table de la météo moyenne des groupes
+            $this->conn->exec("CREATE TABLE IF NOT EXISTS `group_weather` (
+                `id` INT PRIMARY KEY AUTO_INCREMENT,
+                `group_id` VARCHAR(10) NOT NULL,
+                `temperature_avg` DECIMAL(5,2),
+                `humidity_avg` DECIMAL(5,2),
+                `wind_speed_avg` DECIMAL(5,2),
+                `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (`group_id`) REFERENCES `groups`(`id`) ON DELETE CASCADE,
+                INDEX `idx_group_weather_timestamp` (`timestamp`)
             )");
 
         } catch(PDOException $e) {

@@ -13,17 +13,13 @@
   </header>
 
   <main class="login-container">
-    <h2>Bonjour, veuillez indiquer vos informations :</h2>
+    <h2>Bonjour, veuillez indiquer votre email :</h2>
     <form id="loginForm" class="login-form" action="/users/tdavid/php/login.php" method="POST">
       <div class="form-group">
           <label for="identifier">Email :</label><br>
           <input type="email" id="identifier" name="email" required>
       </div>
-      <div class="form-group">
-          <label for="password">Mot de passe :</label>
-          <input type="password" id="password" name="password" required>
-      </div>
-      <button type="submit" id="loginButton">Connexion / Inscription</button>
+      <button type="submit" id="loginButton">Connexion</button>
       <div id="errorMessage" class="error-message"></div>
   </form>
   </main>
