@@ -1,4 +1,24 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier si l'utilisateur est connecté et est admin
+    const loggedIn = sessionStorage.getItem('loggedIn');
+    const userRole = sessionStorage.getItem('userRole');
+
+    if (loggedIn !== 'true' || userRole !== 'admin') {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // Gérer la déconnexion
+    const logoutButton = document.getElementById('logout-button');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function() {
+            // Effacer les données de session
+            sessionStorage.clear();
+            // Rediriger vers la page de connexion
+            window.location.href = 'login.html';
+        });
+    }
+
     // Éléments du DOM
     const groupsTable = document.getElementById('groups-table').getElementsByTagName('tbody')[0];
     const usersTable = document.getElementById('users-table').getElementsByTagName('tbody')[0];
@@ -119,13 +139,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const name = document.getElementById('group-name').value;
         const description = document.getElementById('group-description').value;
 
-        if (!name) {
-            alert('Veuillez entrer un nom de groupe');
-            return;
-        }
-
         try {
-            const response = await fetch('/php/admin.php', {
+            const response = await fetch('https://rt-projet.pu-pm.univ-fcomte.fr/users/tdavid/php/admin.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -137,15 +152,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
 
-            const result = await response.json();
-            if (result.success) {
-                // Recharger les groupes après l'ajout
-                await loadGroups();
-                // Réinitialiser les champs
-                document.getElementById('group-name').value = '';
-                document.getElementById('group-description').value = '';
-            } else {
-                alert('Erreur lors de l\'ajout du groupe: ' + result.message);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const text = await response.text();
+            console.log('Response text:', text);
+            
+            try {
+                const result = JSON.parse(text);
+                if (result.success) {
+                    loadGroups();
+                    document.getElementById('group-name').value = '';
+                    document.getElementById('group-description').value = '';
+                } else {
+                    alert('Erreur lors de l\'ajout du groupe: ' + result.message);
+                }
+            } catch (jsonError) {
+                console.error('Erreur de parsing JSON:', jsonError, 'Texte reçu:', text);
+                alert('Erreur lors du traitement de la réponse du serveur');
             }
         } catch (error) {
             console.error('Erreur:', error);
@@ -196,16 +221,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadUsers() {
         try {
-            const response = await fetch('/php/admin.php?action=get_users');
-            const result = await response.json();
-            
-            if (result.success) {
-                console.log('Utilisateurs reçus:', result.users); // Log pour déboguer
-                allUsers = result.users;
-                displayUsers(allUsers);
-                updateUserSelect(allUsers);
-            } else {
-                console.error('Erreur lors du chargement des utilisateurs:', result.message);
+            const response = await fetch('https://rt-projet.pu-pm.univ-fcomte.fr/users/tdavid/php/admin.php?action=get_users');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const text = await response.text();
+            console.log('Response text:', text);
+            try {
+                const result = JSON.parse(text);
+                if (result.success) {
+                    console.log('Utilisateurs reçus:', result.users);
+                    allUsers = result.users;
+                    displayUsers(allUsers);
+                    updateUserSelect(allUsers);
+                } else {
+                    console.error('Erreur lors du chargement des utilisateurs:', result.message);
+                }
+            } catch (jsonError) {
+                console.error('Erreur de parsing JSON:', jsonError, 'Texte reçu:', text);
             }
         } catch (error) {
             console.error('Erreur lors du chargement des utilisateurs:', error);
@@ -214,26 +247,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadGroups() {
         try {
-            const response = await fetch('/php/admin.php?action=get_groups');
-            const result = await response.json();
-            
-            if (result.success) {
-                allGroups = result.groups;
-                // Mettre à jour le tableau des groupes
-                groupsTable.innerHTML = '';
-                result.groups.forEach(group => {
-                    const row = groupsTable.insertRow();
-                    row.innerHTML = `
-                        <td>${group.id}</td>
-                        <td>${group.name}</td>
-                        <td>${group.description}</td>
-                        <td>
-                            <button class="btn btn-danger" onclick="deleteGroup(${group.id})">Supprimer</button>
-                        </td>
-                    `;
-                });
-                // Mettre à jour les menus déroulants
-                updateGroupSelects();
+            const response = await fetch('https://rt-projet.pu-pm.univ-fcomte.fr/users/tdavid/php/admin.php?action=get_groups');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const text = await response.text();
+            console.log('Response text:', text);
+            try {
+                const result = JSON.parse(text);
+                if (result.success) {
+                    allGroups = result.groups;
+                    groupsTable.innerHTML = '';
+                    result.groups.forEach(group => {
+                        const row = groupsTable.insertRow();
+                        row.innerHTML = `
+                            <td>${group.id}</td>
+                            <td>${group.name}</td>
+                            <td>${group.description}</td>
+                            <td>
+                                <button class="btn btn-danger" onclick="deleteGroup(${group.id})">Supprimer</button>
+                            </td>
+                        `;
+                    });
+                    updateGroupSelects();
+                }
+            } catch (jsonError) {
+                console.error('Erreur de parsing JSON:', jsonError, 'Texte reçu:', text);
             }
         } catch (error) {
             console.error('Erreur lors du chargement des groupes:', error);
@@ -257,38 +296,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadGroupsWeather() {
         try {
-            const response = await fetch('/php/admin.php?action=get_groups_weather');
-            const result = await response.json();
-            
-            if (result.success) {
-                groupsWeatherDiv.innerHTML = '';
-                result.groups.forEach(group => {
-                    const weatherDiv = document.createElement('div');
-                    weatherDiv.className = 'group-weather';
-                    
-                    // Vérifier si les coordonnées existent
-                    const coordinates = group.latitude && group.longitude 
-                        ? `${group.latitude.toFixed(4)}, ${group.longitude.toFixed(4)}`
-                        : 'Non disponible';
-                    
-                    // Vérifier si les données météo existent
-                    let weatherData = '<p>Données météo non disponibles</p>';
-                    if (group.weather_data) {
-                        weatherData = `
-                            <p>Température: ${group.weather_data.temperature}°C</p>
-                            <p>Conditions: ${group.weather_data.conditions}</p>
-                        `;
-                    }
+            const response = await fetch('https://rt-projet.pu-pm.univ-fcomte.fr/users/tdavid/php/admin.php?action=get_groups_weather');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const text = await response.text();
+            console.log('Response text:', text);
+            try {
+                const result = JSON.parse(text);
+                if (result.success) {
+                    groupsWeatherDiv.innerHTML = '';
+                    result.groups.forEach(group => {
+                        const weatherDiv = document.createElement('div');
+                        weatherDiv.className = 'group-weather';
+                        
+                        // Vérifier si les coordonnées existent
+                        const coordinates = group.latitude && group.longitude 
+                            ? `${group.latitude.toFixed(4)}, ${group.longitude.toFixed(4)}`
+                            : 'Non disponible';
+                        
+                        // Vérifier si les données météo existent
+                        let weatherData = '<p>Données météo non disponibles</p>';
+                        if (group.weather_data) {
+                            weatherData = `
+                                <p>Température: ${group.weather_data.temperature}°C</p>
+                                <p>Conditions: ${group.weather_data.conditions}</p>
+                            `;
+                        }
 
-                    weatherDiv.innerHTML = `
-                        <h3>${group.name}</h3>
-                        <p>Position moyenne: ${coordinates}</p>
-                        <div class="weather-data">
-                            ${weatherData}
-                        </div>
-                    `;
-                    groupsWeatherDiv.appendChild(weatherDiv);
-                });
+                        weatherDiv.innerHTML = `
+                            <h3>${group.name}</h3>
+                            <p>Position moyenne: ${coordinates}</p>
+                            <div class="weather-data">
+                                ${weatherData}
+                            </div>
+                        `;
+                        groupsWeatherDiv.appendChild(weatherDiv);
+                    });
+                }
+            } catch (jsonError) {
+                console.error('Erreur de parsing JSON:', jsonError, 'Texte reçu:', text);
             }
         } catch (error) {
             console.error('Erreur lors du chargement de la météo des groupes:', error);
@@ -300,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')) return;
 
         try {
-            const response = await fetch('/php/admin.php', {
+            const response = await fetch('https://rt-projet.pu-pm.univ-fcomte.fr/users/tdavid/php/admin.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -328,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
 
         try {
-            const response = await fetch('/php/admin.php', {
+            const response = await fetch('https://rt-projet.pu-pm.univ-fcomte.fr/users/tdavid/php/admin.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

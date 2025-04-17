@@ -10,6 +10,26 @@
             margin: 0 auto;
             padding: 20px;
         }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .admin-header h1 {
+            margin: 0;
+        }
+        .logout-btn {
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
         .admin-section {
             margin-bottom: 30px;
             padding: 20px;
@@ -67,9 +87,12 @@
 </head>
 <body>
     <div class="container">
-        <header class="title">
-            <h1>Administration <span class="highlight">Climatomètre</span></h1>
-            <p class="auteurs">Gestion des données climatiques</p>
+        <header class="admin-header">
+            <div>
+                <h1>Administration <span class="highlight">Climatomètre</span></h1>
+                <p class="auteurs">Gestion des données climatiques</p>
+            </div>
+            <button id="logout-button" class="logout-btn">Déconnexion</button>
         </header>
 
         <main>

@@ -10,19 +10,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Connexion à la base de données
-$servername = "mysql_serv";
-$username = "tdavid";
-$password = "ev6&il}[sv";
-$dbname = "tdavid_05";
+// Inclure la configuration de la base de données avec le chemin absolu
+require_once(__DIR__ . '/config/database.php');
 
 try {
     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $conn->exec("SET NAMES utf8");
 
-    // Récupérer les données JSON
-    $jsonData = file_get_contents('php://input');
-    $data = json_decode($jsonData, true);
+    // Log pour déboguer
+    error_log("Connexion à la base de données réussie");
+    error_log("Serveur: $servername, Base: $dbname, Utilisateur: $username");
+
+    // Récupérer les données JSON pour les requêtes POST
+    $data = null;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $jsonData = file_get_contents('php://input');
+        error_log("Données POST reçues: " . $jsonData); // Log pour déboguer
+        $data = json_decode($jsonData, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Erreur de parsing JSON: ' . json_last_error_msg());
+        }
+    }
 
     // Fonction pour calculer la position moyenne d'un groupe
     function calculateGroupAveragePosition($conn, $group_id) {
@@ -65,10 +74,14 @@ try {
 
     // Gestion des actions
     if (isset($_GET['action'])) {
+        error_log("Action GET reçue: " . $_GET['action']); // Log pour déboguer
+        
         switch ($_GET['action']) {
             case 'get_groups':
                 $stmt = $conn->query("SELECT * FROM groups");
-                echo json_encode(['success' => true, 'groups' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+                $result = ['success' => true, 'groups' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
+                error_log("Résultat get_groups: " . json_encode($result)); // Log pour déboguer
+                echo json_encode($result);
                 break;
 
             case 'get_users':
@@ -84,7 +97,9 @@ try {
                     LEFT JOIN groups g ON u.group_id = g.id
                     ORDER BY u.name
                 ");
-                echo json_encode(['success' => true, 'users' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+                $result = ['success' => true, 'users' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
+                error_log("Résultat get_users: " . json_encode($result)); // Log pour déboguer
+                echo json_encode($result);
                 break;
 
             case 'get_groups_weather':
@@ -102,11 +117,32 @@ try {
                 break;
         }
     } elseif (isset($data['action'])) {
+        error_log("Action POST reçue: " . $data['action']); // Log pour déboguer
+        
         switch ($data['action']) {
             case 'add_group':
-                $stmt = $conn->prepare("INSERT INTO groups (name, description) VALUES (:name, :description)");
-                $stmt->execute(['name' => $data['name'], 'description' => $data['description']]);
-                echo json_encode(['success' => true]);
+                if (!isset($data['name']) || trim($data['name']) === '') {
+                    throw new Exception("Le nom du groupe est requis");
+                }
+                
+                try {
+                    $stmt = $conn->prepare("INSERT INTO groups (name, description) VALUES (:name, :description)");
+                    $stmt->execute([
+                        'name' => trim($data['name']),
+                        'description' => isset($data['description']) ? trim($data['description']) : null
+                    ]);
+                    
+                    $group_id = $conn->lastInsertId();
+                    $result = ['success' => true, 'group_id' => $group_id];
+                    error_log("Groupe ajouté avec succès. ID: " . $group_id); // Log pour déboguer
+                    echo json_encode($result);
+                } catch (PDOException $e) {
+                    if ($e->getCode() == '23000') { // Code d'erreur pour violation de contrainte unique
+                        throw new Exception("Un groupe avec ce nom existe déjà");
+                    } else {
+                        throw $e;
+                    }
+                }
                 break;
 
             case 'add_user':
@@ -167,9 +203,15 @@ try {
                 echo json_encode(['success' => true]);
                 break;
         }
+    } else {
+        throw new Exception("Aucune action spécifiée");
     }
 
 } catch(PDOException $e) {
+    error_log("Erreur PDO: " . $e->getMessage()); // Log pour déboguer
+    echo json_encode(['success' => false, 'message' => 'Erreur de base de données: ' . $e->getMessage()]);
+} catch(Exception $e) {
+    error_log("Erreur générale: " . $e->getMessage()); // Log pour déboguer
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 
