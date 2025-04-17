@@ -40,7 +40,7 @@ try {
             
             // Pour le type "other", préfixer le nom avec "other_" et utiliser le type "secondary"
             if ($residenceType === 'other') {
-                $residenceName = "other_" . $residenceName;
+                $residenceName = "other_ " . $residenceName;
                 $residenceType = 'secondary'; // La base de données n'accepte que 'main' et 'secondary'
             }
 
@@ -163,14 +163,14 @@ try {
             ]);
         }
         
-        // Traitement de la résidence "other" (convertie en "secondary" avec préfixe)
+        // Traitement de la résidence "other"
         if (isset($user['other']) && isset($user['other']['location'])) {
             $stmtResidence->execute([
                 ':user_id' => $userId,
-                ':name' => "other_" . $user['other']['location']['name'],
+                ':name' => $user['other']['location']['name'],
                 ':location_lat' => $user['other']['location']['lat'],
                 ':location_lng' => $user['other']['location']['lon'],
-                ':type' => 'secondary', // On utilise "secondary" pour le type de la résidence "other"
+                ':type' => 'other',
                 ':start_date' => isset($user['other']['startDate']) ? $user['other']['startDate'] : date('Y-m-d'),
                 ':end_date' => isset($user['other']['endDate']) ? $user['other']['endDate'] : date('Y-m-d', strtotime('+1 year'))
             ]);

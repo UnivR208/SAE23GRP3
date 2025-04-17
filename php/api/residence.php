@@ -54,23 +54,16 @@ try {
                 // Vérifions s'il s'agit du type "other" et modifions le nom et le type en conséquence
                 $residenceType = $data['residence']['type'];
                 $residenceName = $data['residence']['name'];
-                
-                // Pour le type "other", préfixer le nom avec "other_" et utiliser le type "secondary"
-                // car la base de données n'accepte que 'main' et 'secondary'
-                $dbType = $residenceType;
-                if ($residenceType === 'other') {
-                    $residenceName = "other_" . $residenceName; // Préfixe pour identifier les résidences de type "other"
-                    $dbType = 'secondary'; // Utiliser le type "secondary" pour la base de données
-                }
+                $dbType = $residenceType; // Utiliser directement le type fourni
 
                 // Vérifier si une résidence du même type existe déjà
                 if ($residenceType === 'other') {
-                    // Pour "other", on cherche spécifiquement une résidence de type secondary avec un nom préfixé par "other_"
-                    $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary' AND name LIKE 'other_%'");
+                    // Pour "other", on cherche une résidence de type other
+                    $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = 'other'");
                     $stmtCheck->execute([':user_id' => $user['id']]);
                 } else if ($residenceType === 'secondary') {
-                    // Pour "secondary", on cherche une résidence de type secondary dont le nom NE commence PAS par "other_"
-                    $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary' AND name NOT LIKE 'other_%'");
+                    // Pour "secondary", recherche standard
+                    $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary'");
                     $stmtCheck->execute([':user_id' => $user['id']]);
                 } else {
                     // Pour "main", recherche standard
@@ -135,12 +128,12 @@ try {
 
                 // Supprimer la résidence
                 if ($data['residence_type'] === 'other') {
-                    // Pour "other", supprimer la résidence de type secondary avec un nom préfixé par "other_"
-                    $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary' AND name LIKE 'other_%'");
+                    // Pour "other", supprimer la résidence de type other
+                    $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = 'other'");
                     $stmtDelete->execute([':user_id' => $user['id']]);
                 } else if ($data['residence_type'] === 'secondary') {
-                    // Pour "secondary", supprimer la résidence de type secondary avec un nom qui ne commence pas par "other_"
-                    $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary' AND name NOT LIKE 'other_%'");
+                    // Pour "secondary", suppression standard
+                    $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary'");
                     $stmtDelete->execute([':user_id' => $user['id']]);
                 } else {
                     // Pour "main", suppression standard

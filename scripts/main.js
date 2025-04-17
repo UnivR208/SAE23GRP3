@@ -396,33 +396,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 const otherResidenceBtn = document.getElementById('other-residence');
                 
                 const mainResidence = currentResidences.find(r => r.type === 'main');
-                
-                // Pour les résidences secondaires et autres, nous devons distinguer celles avec le préfixe "other_"
-                const secondaryResidences = currentResidences.filter(r => r.type === 'secondary');
-                const trueSecondaryResidence = secondaryResidences.find(r => !r.name.startsWith('other_'));
-                const otherResidence = secondaryResidences.find(r => r.name.startsWith('other_'));
+                const secondaryResidence = currentResidences.find(r => r.type === 'secondary');
+                const otherResidence = currentResidences.find(r => r.type === 'other');
                 
                 // Activer/désactiver les boutons en fonction des résidences disponibles
                 if (mainResidenceBtn) {
                     mainResidenceBtn.disabled = !mainResidence;
                 }
                 if (secondaryResidenceBtn) {
-                    secondaryResidenceBtn.disabled = !trueSecondaryResidence;
+                    secondaryResidenceBtn.disabled = !secondaryResidence;
                 }
                 if (otherResidenceBtn) {
                     otherResidenceBtn.disabled = !otherResidence;
                 }
                 
                 // Mettre à jour l'affichage avec les résidences
-                updateResidenceDisplay(mainResidence, trueSecondaryResidence);
+                updateResidenceDisplay(mainResidence, secondaryResidence);
                 
                 // Si une résidence est active, charger sa météo
                 if (mainResidence) {
                     loadResidenceData('main', mainResidence);
                     // Mettre en évidence la résidence principale par défaut
                     if (mainResidenceBtn) mainResidenceBtn.classList.add('active');
-                } else if (trueSecondaryResidence) {
-                    loadResidenceData('secondary', trueSecondaryResidence);
+                } else if (secondaryResidence) {
+                    loadResidenceData('secondary', secondaryResidence);
                     // Mettre en évidence la résidence secondaire par défaut
                     if (secondaryResidenceBtn) secondaryResidenceBtn.classList.add('active');
                 }
@@ -448,12 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Si les données de résidence ne sont pas fournies, tenter de les récupérer
             // à partir de currentResidences
             if (!residenceData) {
-                if (residenceType === 'other') {
-                    // Pour "other", rechercher parmi les résidences "secondary" avec un nom préfixé par "other_"
-                    residenceData = currentResidences.find(r => r.type === 'secondary' && r.name.startsWith('other_'));
-                } else {
-                    residenceData = currentResidences.find(r => r.type === residenceType);
-                }
+                residenceData = currentResidences.find(r => r.type === residenceType);
                 
                 if (!residenceData) {
                     throw new Error(`Résidence ${residenceType} non trouvée`);
@@ -497,11 +489,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Nettoyage du nom de la résidence (supprimer le préfixe "other_" si présent)
+        // Nettoyage du nom de la résidence
         let displayName = location.name;
-        if (displayName.startsWith('other_')) {
-            displayName = displayName.substring(6); // Enlever les 6 premiers caractères ("other_")
-        }
 
         // Affichage de la météo actuelle
         currentWeather.innerHTML = `
