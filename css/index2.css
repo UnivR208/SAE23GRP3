@@ -1,0 +1,236 @@
+/* Style de base */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: url('img/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+/* Mode nuit */
+body.night-mode {
+    background-color: #1a1a1a;
+    color: white;
+}
+
+/* Nuages en fond */
+.cloud {
+    position: absolute;
+    animation: cloud-animation 60s linear infinite;
+    z-index: -1;
+}
+
+.cloud1 { top: 10%; left: 20%; }
+.cloud2 { top: 15%; left: 30%; }
+.cloud3 { top: 30%; left: 50%; }
+.cloud4 { top: 40%; left: 70%; }
+.cloud5 { top: 60%; left: 10%; }
+.cloud6 { top: 70%; left: 60%; }
+
+/* Animation des nuages */
+@keyframes cloud-animation {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Étoiles en fond */
+.star {
+    position: absolute;
+    z-index: -1;
+    animation: star-animation 200s linear infinite;
+}
+
+.star1 { top: 15%; left: 10%; }
+.star2 { top: 30%; left: 40%; }
+
+@keyframes star-animation {
+    0% { transform: translateY(-100vh); }
+    100% { transform: translateY(100vh); }
+}
+
+/* Effet de brume */
+.fog {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: -1;
+    animation: fog-animation 60s linear infinite;
+}
+
+@keyframes fog-animation {
+    0% { opacity: 0.2; }
+    50% { opacity: 0.5; }
+    100% { opacity: 0.2; }
+}
+
+/* Corps de la page */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+}
+
+/* En-tête */
+.site-header {
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+#toggle-theme {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+#theme-icon {
+    margin-right: 10px;
+}
+
+/* Sections */
+.section {
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.night-mode .section {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+h1 {
+    font-size: 2rem;
+    color: black;
+}
+
+button {
+    background-color: #007bff;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.logout-btn {
+    background-color: #dc3545;
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
+}
+
+/* Recherche étudiant */
+.search-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#student-search {
+    width: 80%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+#search-button {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #28a745;
+    color: white;
+}
+
+/* Résidences */
+.residence-controls button {
+    margin-right: 10px;
+}
+
+/* Formulaire ajouter une résidence */
+#add-residence-form {
+    margin-top: 20px;
+}
+
+.form-fields {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-fields input,
+.form-fields select {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+#add-residence-error {
+    color: red;
+}
+
+/* Météo */
+#weather-info {
+    display: flex;
+    flex-direction: column;
+}
+
+#current-weather {
+    margin-bottom: 20px;
+}
+
+/* Stats collectives */
+#climate-stats {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+#climate-stats div {
+    width: 45%;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    color: white;
+}
+
+/* Mode nuit : ajustements pour meilleure lisibilité */
+.night-mode .cloud {
+    opacity: 0.3;
+    filter: grayscale(100%) brightness(60%);
+}
+
+.night-mode .star {
+    opacity: 0.8;
+}
+
+.night-mode .fog {
+    background: rgba(0, 0, 0, 0.1);
+}
