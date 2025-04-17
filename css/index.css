@@ -5,15 +5,19 @@
     box-sizing: border-box;
 }
 
-body {
+html, body {
+    min-height: 100%;
+    width: 100%;
     margin: 0;
     padding: 0;
+    overflow-y: auto;
+}
+
+body {
     font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(to bottom right, #a6ddf0, #b3e5fc);
-    min-height: 100vh;
-    overflow: auto;
-    position: static;
+    background: linear-gradient(to bottom right, #a6ddf0, #b3e5fc) fixed;
     color: #333;
+    line-height: 1.4;
 }
 
 /* Mode nuit simplifié */
@@ -26,8 +30,7 @@ body.night-mode {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
-    position: relative;
+    padding: 15px;
 }
 
 /* En-tête */
@@ -40,15 +43,23 @@ body.night-mode {
     margin-bottom: 20px;
 }
 
-/* Styles pour la page principale */
+/* Sections */
+.section {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+/* En-tête */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    background-color: rgba(255, 255, 255, 0.7);
-    border-radius: 10px;
+    padding: 15px;
     margin-bottom: 15px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
 }
 
 h1, h2, h3 {
@@ -76,88 +87,161 @@ p {
     background-color: #ff3333;
 }
 
-/* Styles pour les sections */
-.section {
-    background-color: rgba(255, 255, 255, 0.7);
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-/* Styles pour les contrôles des résidences */
+/* Contrôles des résidences */
 .residence-controls {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 10px;
-    margin-top: 10px;
+    margin-bottom: 15px;
 }
 
-/* Styles pour la recherche */
-.search-container {
-    display: flex;
-    gap: 10px;
-    margin: 15px 0;
-}
-
-/* Styles pour les formulaires */
-.form-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.date-fields {
-    display: flex;
-    gap: 10px;
-}
-
-.form-row {
-    display: flex;
-    gap: 10px;
-}
-
-/* Styles pour les boutons */
-button {
-    padding: 8px 15px;
+.residence-button {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px;
     background-color: #007acc;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.residence-button:hover {
+    background-color: #005fa3;
+    transform: translateY(-2px);
+}
+
+.residence-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Météo */
+#weather-info {
+    margin-top: 15px;
+}
+
+#current-weather {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.forecast-scroll {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+.forecast-card {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.forecast-card p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.forecast-card strong {
+    font-size: 1rem;
+}
+
+/* Formulaire d'ajout */
+#add-residence-form {
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.form-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.date-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+input, select, button {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+button {
+    background-color: #007acc;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
     background-color: #005fa3;
 }
 
-/* Styles pour les inputs */
-input, select {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
+/* Responsive */
+@media (max-width: 768px) {
+    .forecast-scroll {
+        grid-template-columns: repeat(5, minmax(140px, 1fr));
+    }
+    
+    .form-fields {
+        grid-template-columns: 1fr;
+    }
 }
 
-/* Styles pour la météo actuelle */
-#current-weather, #forecast {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-top: 15px;
+@media (max-width: 480px) {
+    .forecast-scroll {
+        grid-template-columns: repeat(5, minmax(120px, 1fr));
+    }
+    
+    .residence-controls {
+        grid-template-columns: 1fr;
+    }
 }
 
-/* Style pour le formulaire d'ajout de résidence */
-#add-residence-form {
-    padding: 15px;
-    background-color: rgba(255, 255, 255, 0.5);
-    border-radius: 8px;
+/* Scrollbar personnalisée */
+.forecast-scroll::-webkit-scrollbar {
+    height: 6px;
 }
 
-/* Style pour le climatomètre collectif */
-#climate-stats {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.forecast-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.forecast-scroll::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.forecast-scroll::-webkit-scrollbar-thumb:hover {
+    background: #666;
 }
 
 .site-logo {
@@ -231,34 +315,6 @@ input, select {
 /* Suppression des animations et des éléments décoratifs qui pourraient bloquer */
 .cloud, .star, .fog {
     display: none;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-    
-    .header {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    input, button, select {
-        width: 100%;
-    }
-}
-
-@media (max-width: 480px) {
-    .site-header { top: 10px; right: 10px; }
-    .site-logo { width: 130px; }
-    .login-form input,
-    .login-form button { font-size: 0.9rem; padding: 10px; }
-    .login-container h2 { font-size: 1rem; }
-    
-    input, button, select {
-        width: 100%;
-    }
 }
 
 .delete-residence-btn {

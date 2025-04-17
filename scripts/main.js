@@ -24,6 +24,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const addResidenceError = document.getElementById('add-residence-error');
     const useLocationButton = document.getElementById('use-location-button');
     const addResidenceForm = document.getElementById('add-residence-form');
+    const logoutButton = document.getElementById('logout-button');
+
+    // Gestion de la déconnexion
+    logoutButton.addEventListener('click', () => {
+        // Effacer les données de session
+        sessionStorage.clear();
+        // Rediriger vers la page de connexion
+        window.location.href = 'login.html';
+    });
 
     // Initialiser la date du jour dans le formulaire
     const today = new Date().toISOString().split('T')[0];
@@ -526,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const forecastHTML = weatherData.forecast.time
                 .slice(0, 5)
                 .map((date, index) => `
-                    <div style="border: 1px solid #ccc; padding: 10px; margin: 5px;">
+                    <div class="forecast-card">
                         <p><strong>${weatherManager.formatDate(date)}</strong></p>
                         <p>${weatherManager.getWeatherIcon(weatherData.forecast.weather_code[index])}</p>
                         <p>Max: ${weatherManager.formatTemperature(weatherData.forecast.temperature_2m_max[index])}</p>
@@ -537,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             forecast.innerHTML = `
                 <h3>Prévisions pour les prochains jours</h3>
-                <div style="display: flex; overflow-x: auto;">
+                <div class="forecast-scroll">
                     ${forecastHTML}
                 </div>
             `;
@@ -561,4 +570,4 @@ document.addEventListener('DOMContentLoaded', function() {
         
         setTimeout(() => errorDiv.remove(), 5000);
     }
-}); 
+});
