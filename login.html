@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Windy - Connexion</title>
+  <link rel="stylesheet" href="css/index.css" />
+</head>
+<body>
+  <div class="login-container">
+    <div class="site-header">
+      <button id="toggle-theme" title="Changer de thème">🌙 / ☀️</button>
+    </div>
+
+    <img src="img/logo_transparent.svg" alt="Windy Logo" class="site-logo">
+    <h2>Connexion au Climatomètre</h2>
+    
+    <div class="login-form">
+      <input type="email" id="login-email" placeholder="Email" required>
+      <input type="password" id="login-password" placeholder="Mot de passe" required>
+      <button id="login-button">Se connecter</button>
+      <div id="login-error" style="color: red; margin-top: 10px;"></div>
+    </div>
+
+    <!-- Clouds for decoration -->
+    <img src="img/cloud 1 trans.svg" alt="Cloud" class="cloud cloud1">
+    <img src="img/cloud 2 trans.svg" alt="Cloud" class="cloud cloud2">
+    <img src="img/cloud 3 trans.svg" alt="Cloud" class="cloud cloud3">
+    <img src="img/cloud 4 trans.svg" alt="Cloud" class="cloud cloud4">
+    <img src="img/cloud 5 trans.svg" alt="Cloud" class="cloud cloud5">
+    <img src="img/cloud 6 trans.svg" alt="Cloud" class="cloud cloud6">
+    
+    <!-- Stars for night mode -->
+    <div class="star star1"></div>
+    <div class="star star2"></div>
+  </div>
+
+  <script src="scripts/localData.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const dataManager = new LocalDataManager();
+      const loginButton = document.getElementById('login-button');
+      const emailInput = document.getElementById('login-email');
+      const passwordInput = document.getElementById('login-password');
+      const loginError = document.getElementById('login-error');
+      const toggleThemeButton = document.getElementById('toggle-theme');
+
+      // Vérifier si l'utilisateur est déjà connecté
+      const userId = sessionStorage.getItem('userId');
+      if (userId) {
+        // Rediriger vers la page principale
+        window.location.href = 'index.html';
+      }
+
+      // Gestion du thème
+      toggleThemeButton.addEventListener('click', function() {
+        document.body.classList.toggle('night-mode');
+        
+        // Sauvegarder la préférence dans localStorage
+        const isNightMode = document.body.classList.contains('night-mode');
+        localStorage.setItem('night-mode', isNightMode);
+      });
+
+      // Charger le thème depuis localStorage
+      if (localStorage.getItem('night-mode') === 'true') {
+        document.body.classList.add('night-mode');
+      }
+
+      // Gestion de la connexion
+      loginButton.addEventListener('click', async function() {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!email || !password) {
+          loginError.textContent = 'Veuillez remplir tous les champs';
+          return;
+        }
+
+        try {
+          const result = await dataManager.authenticate(email, password);
+          
+          if (result.success) {
+            // Stocker les informations de l'utilisateur
+            sessionStorage.setItem('userId', result.userId);
+            sessionStorage.setItem('userName', result.userName);
+            sessionStorage.setItem('userRole', result.role);
+            
+            // Rediriger vers la page principale
+            window.location.href = 'index.html';
+          } else {
+            loginError.textContent = result.message || 'Identifiants incorrects';
+          }
+        } catch (error) {
+          console.error('Erreur lors de la connexion:', error);
+          loginError.textContent = 'Une erreur est survenue lors de la connexion';
+        }
+      });
+
+      // Permettre la connexion en appuyant sur Entrée
+      passwordInput.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+          loginButton.click();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

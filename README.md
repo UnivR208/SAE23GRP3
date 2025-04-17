@@ -1,65 +1,58 @@
-# Climatomètre des étudiants BUT1 R&T
+# Climatomètre BUT1 R&T - Application en mode Local
 
-## Présentation du projet
+## À propos
+Cette application permet aux étudiants de suivre les climats de leurs résidences. Toutes les données sont stockées localement dans le navigateur (localStorage) et ne nécessitent pas de serveur PHP.
 
-Ce projet vise à développer un outil informatique qui affiche le "climatomètre" des étudiants du BUT1 R&T. L'application cartographie les climats des résidences (principale et secondaire) d'un groupe d'étudiants universitaires, recense le climat quotidien et stocke ces données dans une base de données.
+## Fonctionnalités
+- Login/Authentication locale
+- Gestion des résidences étudiantes (principale, secondaire, autre)
+- Affichage des données météo en temps réel et prévisions
+- Mode jour/nuit
+- Sauvegarde automatique des données dans le localStorage du navigateur
 
-## Fonctionnalités principales
+## Comment utiliser l'application
+1. Ouvrir le fichier `index.html` dans un navigateur web
+2. L'application demandera de se connecter
+3. Utiliser les identifiants par défaut:
+   - Email: `tom@example.com`
+   - Mot de passe: `tom`
+4. Une fois connecté, vous pouvez:
+   - Visualiser les résidences existantes
+   - Ajouter une nouvelle résidence
+   - Consulter les données météo actuelles et les prévisions
 
-- Affichage du climat journalier pour chaque étudiant (résidence principale et secondaire)
-- Stockage des données climatiques dans une base de données
-- Visualisation du temps présent et historique de chaque étudiant
-- Affichage du climat médian du groupe d'étudiants (climatomètre collectif)
-- Interface de gestion des données climatiques
+## Structure de l'application
 
-## Gestion des données
+### Fichiers principaux
+- `index.html` - Page principale de l'application
+- `login.html` - Page de connexion
+- `data/students.json` - Données initiales (chargées au premier lancement)
 
-Les informations pour chaque étudiant incluent :
-- Nom et prénom
-- Adresse de résidence principale (+ dates de début et fin)
-- Adresse de résidence secondaire optionnelle (+ dates de début et fin)
-- Données climatiques horodatées pour chaque lieu de résidence
+### Scripts JavaScript
+- `scripts/localData.js` - Gère le stockage et la récupération des données en local
+- `scripts/main.js` - Script principal de l'application
+- `scripts/weather.js` - Gère l'API météo
+- `scripts/redirect.js` - Gère les redirections et l'authentification
 
-Deux méthodes de saisie des données sont proposées :
-1. Via un fichier JSON ou CSV complété par des informations provenant d'une API météo
-2. Via une base de données à renseigner depuis une interface web ou mobile
+### CSS
+- `css/index.css` - Styles principaux
+- `css/windy.css` - Styles spécifiques pour les animations
 
-## Implémentation technique
+## Stockage des données
+Toutes les données sont stockées dans le localStorage du navigateur sous la clé `windy_data`. Au premier lancement, les données sont initialisées à partir du fichier `data/students.json`.
 
-Le projet peut être développé sous forme de site web ou d'application mobile, rendant l'outil facilement accessible aux utilisateurs via un simple navigateur web.
+## APIs externes utilisées
+- OpenWeatherMap API pour les données météo
+- Nominatim (OpenStreetMap) pour la géolocalisation
 
-### Étapes de réalisation
+## Notes techniques
+- L'application fonctionne entièrement côté client, sans besoin de PHP ou de base de données.
+- Les données sont persistantes entre les sessions grâce au localStorage.
+- Pour réinitialiser toutes les données, vous pouvez effacer le localStorage de votre navigateur.
 
-#### Section 1 : Mise en place de l'environnement de développement
-- Utilisation d'une machine virtuelle ou accès à distance aux ressources (ESX, Proxmox, Guacamole, Docker, etc.)
-- Installation d'un serveur web non chiffré (Nginx ou Apache)
-- Possibilité d'utiliser des frameworks : Python (Django, Flask), JavaScript (jQuery), Java (Play), etc.
-
-#### Section 2 : Réalisation documentée
-- Développement algorithmique (scripts serveur, dépôt de code)
-- Technologies web (HTML, CSS)
-- Base de données avec manipulation complète (ajout, suppression, modification)
-
-#### Section 3 : Formation et documentation
-- Organisation d'une session de formation en français et anglais
-- Documentation technique de l'application en anglais
-- Tutoriel d'installation et d'utilisation
-
-## Modalités d'évaluation
-
-- Site fonctionnel et dynamique
-- Manipulation des données (CSV/JSON et BDD)
-- Documentation technique complète
-- Tutoriel d'installation et d'utilisation
-- Dépôt du code source
-- Démonstration fonctionnelle
-- Présentation des outils de développement utilisés
-- Méthode de validation (cahier de tests, tests unitaires)
-
-## Équipe
-
-Ce projet peut être réalisé par un groupe de 2 ou 3 étudiants.
-
----
-
-*Note: Ce projet expérimental propose un cahier des charges intentionnellement imparfait et évolutif, reflétant la complexité des situations réelles de développement.*
+## Compatibilité
+Fonctionne sur tous les navigateurs modernes qui supportent:
+- JavaScript ES6+
+- localStorage
+- Fetch API
+- Async/Await

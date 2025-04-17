@@ -1,0 +1,62 @@
+{
+    "students": [
+        {
+            "id": "TOM001",
+            "name": "Tom",
+            "email": "tom@example.com",
+            "password": "tom",
+            "role": "student",
+            "residences": {
+                "main": {
+                    "city_name": "Paris",
+                    "latitude": 48.8566,
+                    "longitude": 2.3522,
+                    "start_date": "2023-01-01",
+                    "end_date": "2023-12-31"
+                },
+                "secondary": {
+                    "city_name": "Lyon",
+                    "latitude": 45.75,
+                    "longitude": 4.85,
+                    "start_date": "2023-06-01",
+                    "end_date": "2023-08-31"
+                },
+                "other": null
+            }
+        }
+    ],
+    "admins": [
+        {
+            "id": "ADMIN001",
+            "name": "Admin",
+            "email": "admin@example.com",
+            "password": "admin",
+            "role": "admin"
+        }
+    ],
+    "weather_cache": {
+        "Paris": {
+            "timestamp": 1691414400,
+            "data": {
+                "current": {
+                    "temp": 22.5,
+                    "humidity": 65,
+                    "weather": [{"main": "Clouds", "description": "Nuageux", "icon": "04d"}],
+                    "wind_speed": 3.5
+                },
+                "forecast": [
+                    {
+                        "dt": 1691414400,
+                        "temp": {"day": 23.5},
+                        "weather": [{"main": "Clouds", "description": "Nuageux", "icon": "04d"}]
+                    },
+                    {
+                        "dt": 1691500800,
+                        "temp": {"day": 25.2},
+                        "weather": [{"main": "Clear", "description": "Ciel dégagé", "icon": "01d"}]
+                    }
+                ]
+            }
+        }
+    }
+}
