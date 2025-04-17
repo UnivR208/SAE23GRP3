@@ -37,12 +37,6 @@ try {
             // Traitement du type de résidence
             $residenceType = $data['residence']['type'];
             $residenceName = $data['residence']['name'];
-            
-            // Pour le type "other", préfixer le nom avec "other_" et utiliser le type "secondary"
-            if ($residenceType === 'other') {
-                $residenceName = "other_ " . $residenceName;
-                $residenceType = 'secondary'; // La base de données n'accepte que 'main' et 'secondary'
-            }
 
             // Préparer la requête d'insertion de résidence
             $stmtResidence = $conn->prepare("INSERT INTO RESIDENCE (user_id, name, location_lat, location_lng, type, start_date, end_date)

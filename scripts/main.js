@@ -304,9 +304,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Fonction pour mettre à jour l'affichage des résidences
-    function updateResidenceDisplay(mainResidence, secondaryResidence) {
+    function updateResidenceDisplay(mainResidence, secondaryResidence, otherResidence) {
         const mainResidenceDiv = document.getElementById('main-residence');
         const secondaryResidenceDiv = document.getElementById('secondary-residence');
+        const otherResidenceDiv = document.getElementById('other-residence');
         
         if (mainResidence) {
             mainResidenceDiv.innerHTML = `
@@ -330,6 +331,18 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             secondaryResidenceDiv.innerHTML = 'Résidence Secondaire';
             secondaryResidenceDiv.disabled = true;
+        }
+
+        if (otherResidence) {
+            otherResidenceDiv.innerHTML = `
+                <h3>Autre Résidence</h3>
+                <p>${otherResidence.name}</p>
+                <p>Du ${formatDate(otherResidence.start_date)} au ${formatDate(otherResidence.end_date)}</p>
+            `;
+            otherResidenceDiv.disabled = false;
+        } else {
+            otherResidenceDiv.innerHTML = 'Autre Résidence';
+            otherResidenceDiv.disabled = true;
         }
     }
 
@@ -411,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Mettre à jour l'affichage avec les résidences
-                updateResidenceDisplay(mainResidence, secondaryResidence);
+                updateResidenceDisplay(mainResidence, secondaryResidence, otherResidence);
                 
                 // Si une résidence est active, charger sa météo
                 if (mainResidence) {
@@ -422,6 +435,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     loadResidenceData('secondary', secondaryResidence);
                     // Mettre en évidence la résidence secondaire par défaut
                     if (secondaryResidenceBtn) secondaryResidenceBtn.classList.add('active');
+                } else if (otherResidence) {
+                    loadResidenceData('other', otherResidence);
+                    // Mettre en évidence la résidence autre par défaut
+                    if (otherResidenceBtn) otherResidenceBtn.classList.add('active');
                 }
             } else {
                 console.error('Erreur API residence:', data.message);

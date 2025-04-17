@@ -54,25 +54,13 @@ try {
                 // Vérifions s'il s'agit du type "other" et modifions le nom et le type en conséquence
                 $residenceType = $data['residence']['type'];
                 $residenceName = $data['residence']['name'];
-                $dbType = $residenceType; // Utiliser directement le type fourni
 
                 // Vérifier si une résidence du même type existe déjà
-                if ($residenceType === 'other') {
-                    // Pour "other", on cherche une résidence de type other
-                    $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = 'other'");
-                    $stmtCheck->execute([':user_id' => $user['id']]);
-                } else if ($residenceType === 'secondary') {
-                    // Pour "secondary", recherche standard
-                    $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary'");
-                    $stmtCheck->execute([':user_id' => $user['id']]);
-                } else {
-                    // Pour "main", recherche standard
-                    $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = :type");
-                    $stmtCheck->execute([
-                        ':user_id' => $user['id'],
-                        ':type' => $dbType
-                    ]);
-                }
+                $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = :type");
+                $stmtCheck->execute([
+                    ':user_id' => $user['id'],
+                    ':type' => $residenceType
+                ]);
                 $existing = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
                 if ($existing) {
@@ -104,7 +92,7 @@ try {
                         ':name' => $residenceName,
                         ':location_lat' => $data['residence']['location_lat'],
                         ':location_lng' => $data['residence']['location_lng'],
-                        ':type' => $dbType,
+                        ':type' => $residenceType,
                         ':start_date' => $data['residence']['start_date'],
                         ':end_date' => $data['residence']['end_date']
                     ]);
