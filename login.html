@@ -1,65 +1,66 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion</title>
-    <style>
-        .container {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .btn {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn-primary {
-            background-color: #007bff;
-            color: white;
-        }
-        .error-message {
-            color: red;
-            margin-top: 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion</title>
+  <link rel="stylesheet" href="index css.css" />
 </head>
-<body>
-    <div class="container">
-        <h2>Connexion</h2>
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="identifier">Email</label>
-                <input type="email" id="identifier" name="identifier" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Se connecter</button>
-        </form>
-        <div id="errorMessage" class="error-message"></div>
-    </div>
+<body class="day-mode">
+  <header class="site-header">
+    <img src="img/logo_transparent.svg" alt="Logo" class="site-logo" />
+    <button id="toggle-theme"><span id="theme-icon">🌙</span> Changer de mode</button>
+  </header>
 
-    <script src="scripts/auth.js"></script>
+  <main class="login-container">
+    <h2>Bonjour, veuillez indiquer vos informations :</h2>
+    <form id="loginForm" class="login-form">
+      <div class="form-group">
+        <label for="identifier">Email :</label><br>
+        <input type="email" id="identifier" name="identifier" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe :</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+        <button type="submit">
+          Connexion / Inscription
+        </button>
+        <div id="errorMessage" class="error-message"></div>
+      </div>
+    </form>
+  </main>
+
+  <!-- Nuages -->
+  <img src="img/cloud 2 trans.svg" alt="Nuage" class="cloud cloud1" />
+  <img src="img/cloud 3 trans.svg" alt="Nuage" class="cloud cloud2" />
+  <img src="img/cloud 5 trans.svg" alt="Nuage" class="cloud cloud3" />
+  <img src="img/cloud 6 trans.svg" alt="Nuage" class="cloud cloud4" />
+  <img src="img/cloud 7 trans.svg" alt="Nuage" class="cloud cloud5" />
+  <img src="img/cloud 8 trans.svg" alt="Nuage" class="cloud cloud6" />
+
+  <!-- Étoiles -->
+  <img src="img/cloud 4 trans.svg" alt="Étoile" class="star star1" />
+  <img src="img/cloud 1 trans.svg" alt="Étoile" class="star star2" />
+
+  <!-- Effet brume -->
+  <div class="fog"></div>
+
+  <!-- Script changement de thème -->
+  <script>
+    const toggle = document.getElementById('toggle-theme');
+    const icon = document.getElementById('theme-icon');
+    const body = document.body;
+
+    toggle.addEventListener('click', () => {
+      body.classList.toggle('night-mode');
+      body.classList.toggle('day-mode');
+      icon.textContent = body.classList.contains('night-mode') ? '🌞' : '🌙';
+    });
+  </script>
+
+  <script src="../scripts/auth.js"></script>
+
+
 </body>
-</html> 
+</html>

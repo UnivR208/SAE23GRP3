@@ -1,0 +1,68 @@
+/* style.css */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to bottom right, #a1ddec, #6bc1db);
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .logo {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 150px;
+  }
+  
+  .title {
+    text-align: center;
+    padding-top: 100px;
+    color: #1e1e1e;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .title .highlight {
+    font-size: 3em;
+    font-weight: bold;
+    color: #1e1e1e;
+  }
+  
+  .title h1 {
+    font-size: 70px;
+    font-weight: 600;
+  }
+  
+  .auteurs {
+    margin-top: 30px;
+    font-size: 1em;
+    color: #2d2d2d;
+  }
+  
+  .cloud {
+    position: absolute;
+    width: 150px;
+    opacity: 0.9;
+  }
+  
+  .cloud1 {
+    top: 40px;
+    left: 60px;
+  }
+  
+  .cloud2 {
+    bottom: 20px;
+    left: 20px;
+  }
+  
+  .cloud3 {
+    top: 80px;
+    right: 200px;
+  }
+  
+  .cloud4 {
+    bottom: 40px;
+    right: 100px;
+  }
+  
