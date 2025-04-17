@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <td>${group.name}</td>
                             <td>${group.description}</td>
                             <td>
-                                <button class="btn btn-danger" onclick="deleteGroup(${group.id})">Supprimer</button>
+                                <button class="btn btn-danger" onclick="deleteGroup('${group.id}')">Supprimer</button>
                             </td>
                         `;
                     });

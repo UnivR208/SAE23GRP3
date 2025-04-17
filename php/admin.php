@@ -98,15 +98,18 @@ try {
                     ORDER BY u.name
                 ");
                 $result = ['success' => true, 'users' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
-                error_log("Résultat get_users: " . json_encode($result)); // Log pour déboguer
+                error_log("Résultat get_users: " . json_encode($result));
                 echo json_encode($result);
                 break;
 
             case 'get_groups_weather':
-                $stmt = $conn->query("SELECT g.*, gw.latitude, gw.longitude, gw.weather_data FROM groups g LEFT JOIN group_weather gw ON g.id = gw.group_id");
+                $stmt = $conn->query("
+                    SELECT g.*, gw.latitude, gw.longitude, gw.weather_data 
+                    FROM groups g 
+                    LEFT JOIN group_weather gw ON g.id = gw.group_id
+                ");
                 $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 
-                // Décoder les données météo JSON
                 foreach ($groups as &$group) {
                     if ($group['weather_data']) {
                         $group['weather_data'] = json_decode($group['weather_data'], true);
@@ -126,18 +129,21 @@ try {
                 }
                 
                 try {
-                    $stmt = $conn->prepare("INSERT INTO groups (name, description) VALUES (:name, :description)");
+                    // Générer un ID de groupe unique
+                    $group_id = 'GRP' . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);
+                    
+                    $stmt = $conn->prepare("INSERT INTO groups (id, name, description) VALUES (:id, :name, :description)");
                     $stmt->execute([
+                        'id' => $group_id,
                         'name' => trim($data['name']),
                         'description' => isset($data['description']) ? trim($data['description']) : null
                     ]);
                     
-                    $group_id = $conn->lastInsertId();
                     $result = ['success' => true, 'group_id' => $group_id];
-                    error_log("Groupe ajouté avec succès. ID: " . $group_id); // Log pour déboguer
+                    error_log("Groupe ajouté avec succès. ID: " . $group_id);
                     echo json_encode($result);
                 } catch (PDOException $e) {
-                    if ($e->getCode() == '23000') { // Code d'erreur pour violation de contrainte unique
+                    if ($e->getCode() == '23000') {
                         throw new Exception("Un groupe avec ce nom existe déjà");
                     } else {
                         throw $e;
@@ -158,9 +164,9 @@ try {
                     'id' => $user_id,
                     'name' => $data['name'],
                     'email' => $data['email'],
-                    'password' => password_hash($data['password'], PASSWORD_DEFAULT),
+                    'password' => password_hash('password123', PASSWORD_DEFAULT), // Mot de passe temporaire
                     'role' => $data['role'],
-                    'group_id' => $data['group_id'] ?: null
+                    'group_id' => $data['group_id'] ? $data['group_id'] : null
                 ]);
                 
                 echo json_encode(['success' => true, 'user_id' => $user_id]);
@@ -196,7 +202,7 @@ try {
                     'name' => $data['name'],
                     'email' => $data['email'],
                     'role' => $data['role'],
-                    'group_id' => $data['group_id'],
+                    'group_id' => $data['group_id'] ? $data['group_id'] : null,
                     'user_id' => $data['user_id']
                 ]);
 
