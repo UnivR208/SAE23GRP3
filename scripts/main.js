@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialiser la date du jour dans le formulaire
     const today = new Date().toISOString().split('T')[0];
     startDateInput.value = today;
+    endDateInput.value = today;
     
     // Récupérer les informations de l'utilisateur connecté
     const userId = sessionStorage.getItem('userId');

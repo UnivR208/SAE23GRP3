@@ -3,12 +3,15 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(to bottom right, #a6ddf0, #b3e5fc);
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
     transition: background 1s ease, color 1s ease;
     color: #333;
+  }
+  
+  body.day-mode {
+    background: linear-gradient(to bottom right, #a6ddf0, #b3e5fc);
   }
   
   /* Mode nuit */
@@ -34,6 +37,15 @@ body {
     align-items: flex-end;
     gap: 10px;
     z-index: 10;
+  }
+  
+  /* Logo dans la page de login */
+  .login-page-logo {
+    position: absolute;
+    top: 70px;
+    left: 20px;
+    width: 150px !important;
+    margin-bottom: 0;
   }
   
   /* Styles pour la page principale */
@@ -112,6 +124,16 @@ body {
     gap: 10px;
   }
   
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
   /* Styles pour les boutons */
   button {
     padding: 8px 15px;
@@ -138,6 +160,8 @@ body {
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   /* Styles pour la météo actuelle */
@@ -166,6 +190,7 @@ body {
   .site-logo {
     width: 250px;
     height: auto;
+    margin-bottom: 20px;
   }
   
   /* Bouton mode */
@@ -198,43 +223,35 @@ body {
     position: relative;
   }
   
-  /* Formulaire */
+  /* Formulaire de connexion */
   .login-form {
     display: flex;
     flex-direction: column;
     gap: 15px;
     width: 100%;
-    max-width: 300px;
+    max-width: 400px;
     margin-top: 20px;
-  }
-  
-  .login-form input {
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
   
   .login-form button {
     padding: 12px;
-    background-color: #007acc;
-    color: white;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s ease;
+    font-size: 16px;
+    margin-top: 10px;
   }
   
-  .login-form button:hover {
-    background-color: #005fa3;
+  .error-message {
+    color: #ff3333;
+    margin-top: 10px;
   }
   
   /* Nuages animés */
   .cloud {
     position: absolute;
-    opacity: 1;
+    opacity: 0.8;
     animation: floatCloud 20s ease-in-out infinite;
   }
   
@@ -256,20 +273,15 @@ body {
     position: absolute;
     width: 100px;
     opacity: 0;
-    animation: twinkle 3s infinite ease-in-out;
+    transition: opacity 1s ease-in-out;
   }
   
   body.night-mode .star {
-    opacity: 1;
+    opacity: 0.8;
   }
   
-  .star1 { top: 20%; left: 40%; animation-delay: 0s; }
-  .star2 { bottom: 20%; right: 30%; animation-delay: 1s; }
-  
-  @keyframes twinkle {
-    0%, 100% { opacity: 0.2; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
-  }
+  .star1 { top: 20%; left: 40%; }
+  .star2 { bottom: 20%; right: 30%; }
   
   /* Brume animée */
   .fog {
@@ -291,9 +303,138 @@ body {
     100% { transform: translate(-500px, -500px); }
   }
   
+  /* Écran de redirection animé */
+  .splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom right, #80ccee, #5fbed6);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in forwards;
+  }
+  
+  body.night-mode .splash-screen {
+    background: radial-gradient(ellipse at center, #0a1723 0%, #000000 100%);
+  }
+  
+  .splash-content {
+    text-align: center;
+    animation: scaleUp 0.5s ease-out;
+  }
+  
+  .splash-logo {
+    width: 250px;
+    height: auto;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes scaleUp {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  
+  /* Loader animé */
+  .loader {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    margin: 20px auto;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Cartes météo */
+  .weather-card {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 200px;
+    text-align: center;
+  }
+  
+  .weather-icon {
+    margin: 10px 0;
+  }
+  
+  .weather-details {
+    text-align: center;
+  }
+  
+  .temp {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 5px 0;
+  }
+  
+  .desc {
+    font-style: italic;
+    margin-bottom: 10px;
+  }
+  
+  .forecast-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  
+  .forecast-card {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    padding: 10px;
+    width: 120px;
+    text-align: center;
+  }
+  
+  .day {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  /* Bouton de suppression */
+  .delete-btn {
+    background-color: transparent;
+    color: #ff3333;
+    border: none;
+    padding: 0;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .delete-btn:hover {
+    color: #cc0000;
+    background-color: transparent;
+  }
+  
   /* Responsive */
   @media (max-width: 768px) {
     .site-logo { width: 180px; }
+    .login-page-logo { width: 120px !important; top: 60px; }
     .cloud { width: 150px; }
     .star { width: 60px; }
     
@@ -305,22 +446,26 @@ body {
     .search-container input, .date-fields input, .form-row select, .form-row button {
       width: 100%;
     }
+    
+    .weather-card, .forecast-card {
+      width: 100%;
+    }
   }
   
   @media (max-width: 480px) {
     .site-header { top: 10px; right: 10px; }
     .site-logo { width: 130px; }
+    .login-page-logo { width: 100px !important; top: 50px; left: 10px; }
     .cloud, .star { display: none; }
-    .login-form input,
-    .login-form button { font-size: 0.9rem; padding: 10px; }
-    .login-container h2 { font-size: 1rem; }
+    .login-form { padding: 15px; }
+    .login-container h2 { font-size: 1.2rem; }
     
     .header {
       flex-direction: column;
       gap: 10px;
     }
     
-    input, button, select {
-      width: 100%;
+    .section {
+      padding: 15px;
     }
   } 

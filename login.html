@@ -6,33 +6,54 @@
   <title>Windy - Connexion</title>
   <link rel="stylesheet" href="css/index.css" />
 </head>
-<body>
-  <div class="login-container">
-    <div class="site-header">
-      <button id="toggle-theme" title="Changer de thème">🌙 / ☀️</button>
-    </div>
+<body class="day-mode">
+  <header class="site-header">
+    <button id="toggle-theme"><span id="theme-icon">🌙</span> Changer de mode</button>
+    <img src="img/logo_transparent.svg" alt="Logo" class="site-logo login-page-logo" />
+  </header>
 
-    <img src="img/logo_transparent.svg" alt="Windy Logo" class="site-logo">
-    <h2>Connexion au Climatomètre</h2>
-    
-    <div class="login-form">
-      <input type="email" id="login-email" placeholder="Email" required>
-      <input type="password" id="login-password" placeholder="Mot de passe" required>
-      <button id="login-button">Se connecter</button>
-      <div id="login-error" style="color: red; margin-top: 10px;"></div>
-    </div>
+  <main class="login-container">
+    <h2>Bonjour, veuillez indiquer vos informations :</h2>
+    <form id="loginForm" class="login-form">
+      <div class="form-group">
+        <label for="identifier">Email :</label><br>
+        <input type="email" id="login-email" name="identifier" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe :</label>
+        <input type="password" id="login-password" name="password" required>
+      </div>
+      <div>
+        <button type="button" id="login-button">
+          Connexion
+        </button>
+        <div id="login-error" class="error-message"></div>
+      </div>
+    </form>
+  </main>
 
-    <!-- Clouds for decoration -->
-    <img src="img/cloud 1 trans.svg" alt="Cloud" class="cloud cloud1">
-    <img src="img/cloud 2 trans.svg" alt="Cloud" class="cloud cloud2">
-    <img src="img/cloud 3 trans.svg" alt="Cloud" class="cloud cloud3">
-    <img src="img/cloud 4 trans.svg" alt="Cloud" class="cloud cloud4">
-    <img src="img/cloud 5 trans.svg" alt="Cloud" class="cloud cloud5">
-    <img src="img/cloud 6 trans.svg" alt="Cloud" class="cloud cloud6">
-    
-    <!-- Stars for night mode -->
-    <div class="star star1"></div>
-    <div class="star star2"></div>
+  <!-- Nuages -->
+  <img src="img/cloud 2 trans.svg" alt="Nuage" class="cloud cloud1" />
+  <img src="img/cloud 3 trans.svg" alt="Nuage" class="cloud cloud2" />
+  <img src="img/cloud 5 trans.svg" alt="Nuage" class="cloud cloud3" />
+  <img src="img/cloud 6 trans.svg" alt="Nuage" class="cloud cloud4" />
+  <img src="img/cloud 7 trans.svg" alt="Nuage" class="cloud cloud5" />
+  <img src="img/cloud 8 trans.svg" alt="Nuage" class="cloud cloud6" />
+
+  <!-- Étoiles -->
+  <img src="img/cloud 4 trans.svg" alt="Étoile" class="star star1" />
+  <img src="img/cloud 1 trans.svg" alt="Étoile" class="star star2" />
+
+  <!-- Effet brume -->
+  <div class="fog"></div>
+
+  <!-- Écran de redirection animé -->
+  <div id="splash-screen" class="splash-screen" style="display: none;">
+    <div class="splash-content">
+      <img src="img/logo_transparent.svg" alt="Logo" class="splash-logo" />
+      <h1>Bienvenue sur Windy</h1>
+      <div class="loader"></div>
+    </div>
   </div>
 
   <script src="scripts/localData.js"></script>
@@ -44,6 +65,9 @@
       const passwordInput = document.getElementById('login-password');
       const loginError = document.getElementById('login-error');
       const toggleThemeButton = document.getElementById('toggle-theme');
+      const themeIcon = document.getElementById('theme-icon');
+      const body = document.body;
+      const splashScreen = document.getElementById('splash-screen');
 
       // Vérifier si l'utilisateur est déjà connecté
       const userId = sessionStorage.getItem('userId');
@@ -54,16 +78,19 @@
 
       // Gestion du thème
       toggleThemeButton.addEventListener('click', function() {
-        document.body.classList.toggle('night-mode');
+        body.classList.toggle('night-mode');
+        body.classList.toggle('day-mode');
+        themeIcon.textContent = body.classList.contains('night-mode') ? '🌞' : '🌙';
         
         // Sauvegarder la préférence dans localStorage
-        const isNightMode = document.body.classList.contains('night-mode');
-        localStorage.setItem('night-mode', isNightMode);
+        localStorage.setItem('night-mode', body.classList.contains('night-mode'));
       });
 
       // Charger le thème depuis localStorage
       if (localStorage.getItem('night-mode') === 'true') {
-        document.body.classList.add('night-mode');
+        body.classList.add('night-mode');
+        body.classList.remove('day-mode');
+        themeIcon.textContent = '🌞';
       }
 
       // Gestion de la connexion
@@ -85,8 +112,22 @@
             sessionStorage.setItem('userName', result.userName);
             sessionStorage.setItem('userRole', result.role);
             
-            // Rediriger vers la page principale
-            window.location.href = 'index.html';
+            // Vérifier si c'est la première connexion
+            if (!localStorage.getItem('hasVisitedBefore')) {
+              // Afficher l'écran de redirection
+              splashScreen.style.display = 'flex';
+              
+              // Marquer que l'utilisateur a déjà visité le site
+              localStorage.setItem('hasVisitedBefore', 'true');
+              
+              // Rediriger après 2 secondes
+              setTimeout(function() {
+                window.location.href = 'index.html';
+              }, 2000);
+            } else {
+              // Redirection directe si ce n'est pas la première visite
+              window.location.href = 'index.html';
+            }
           } else {
             loginError.textContent = result.message || 'Identifiants incorrects';
           }
