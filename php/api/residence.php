@@ -51,12 +51,35 @@ try {
                     throw new Exception("Utilisateur non trouvé");
                 }
 
+                // Vérifions s'il s'agit du type "other" et modifions le nom et le type en conséquence
+                $residenceType = $data['residence']['type'];
+                $residenceName = $data['residence']['name'];
+                
+                // Pour le type "other", préfixer le nom avec "other_" et utiliser le type "secondary"
+                // car la base de données n'accepte que 'main' et 'secondary'
+                $dbType = $residenceType;
+                if ($residenceType === 'other') {
+                    $residenceName = "other_" . $residenceName; // Préfixe pour identifier les résidences de type "other"
+                    $dbType = 'secondary'; // Utiliser le type "secondary" pour la base de données
+                }
+
                 // Vérifier si une résidence du même type existe déjà
-                $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = :type");
-                $stmtCheck->execute([
-                    ':user_id' => $user['id'],
-                    ':type' => $data['residence']['type']
-                ]);
+                if ($residenceType === 'other') {
+                    // Pour "other", on cherche spécifiquement une résidence de type secondary avec un nom préfixé par "other_"
+                    $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary' AND name LIKE 'other_%'");
+                    $stmtCheck->execute([':user_id' => $user['id']]);
+                } else if ($residenceType === 'secondary') {
+                    // Pour "secondary", on cherche une résidence de type secondary dont le nom NE commence PAS par "other_"
+                    $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary' AND name NOT LIKE 'other_%'");
+                    $stmtCheck->execute([':user_id' => $user['id']]);
+                } else {
+                    // Pour "main", recherche standard
+                    $stmtCheck = $conn->prepare("SELECT id FROM RESIDENCE WHERE user_id = :user_id AND type = :type");
+                    $stmtCheck->execute([
+                        ':user_id' => $user['id'],
+                        ':type' => $dbType
+                    ]);
+                }
                 $existing = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
                 if ($existing) {
@@ -71,7 +94,7 @@ try {
                     
                     $stmtUpdate->execute([
                         ':id' => $existing['id'],
-                        ':name' => $data['residence']['name'],
+                        ':name' => $residenceName,
                         ':location_lat' => $data['residence']['location_lat'],
                         ':location_lng' => $data['residence']['location_lng'],
                         ':start_date' => $data['residence']['start_date'],
@@ -85,10 +108,10 @@ try {
                     
                     $stmtInsert->execute([
                         ':user_id' => $user['id'],
-                        ':name' => $data['residence']['name'],
+                        ':name' => $residenceName,
                         ':location_lat' => $data['residence']['location_lat'],
                         ':location_lng' => $data['residence']['location_lng'],
-                        ':type' => $data['residence']['type'],
+                        ':type' => $dbType,
                         ':start_date' => $data['residence']['start_date'],
                         ':end_date' => $data['residence']['end_date']
                     ]);
@@ -111,11 +134,22 @@ try {
                 }
 
                 // Supprimer la résidence
-                $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = :type");
-                $stmtDelete->execute([
-                    ':user_id' => $user['id'],
-                    ':type' => $data['residence_type']
-                ]);
+                if ($data['residence_type'] === 'other') {
+                    // Pour "other", supprimer la résidence de type secondary avec un nom préfixé par "other_"
+                    $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary' AND name LIKE 'other_%'");
+                    $stmtDelete->execute([':user_id' => $user['id']]);
+                } else if ($data['residence_type'] === 'secondary') {
+                    // Pour "secondary", supprimer la résidence de type secondary avec un nom qui ne commence pas par "other_"
+                    $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary' AND name NOT LIKE 'other_%'");
+                    $stmtDelete->execute([':user_id' => $user['id']]);
+                } else {
+                    // Pour "main", suppression standard
+                    $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = :type");
+                    $stmtDelete->execute([
+                        ':user_id' => $user['id'],
+                        ':type' => $data['residence_type']
+                    ]);
+                }
 
                 echo json_encode([
                     'success' => true,

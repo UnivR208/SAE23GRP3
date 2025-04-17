@@ -34,6 +34,16 @@ try {
                 throw new Exception("Utilisateur non trouvé");
             }
 
+            // Traitement du type de résidence
+            $residenceType = $data['residence']['type'];
+            $residenceName = $data['residence']['name'];
+            
+            // Pour le type "other", préfixer le nom avec "other_" et utiliser le type "secondary"
+            if ($residenceType === 'other') {
+                $residenceName = "other_" . $residenceName;
+                $residenceType = 'secondary'; // La base de données n'accepte que 'main' et 'secondary'
+            }
+
             // Préparer la requête d'insertion de résidence
             $stmtResidence = $conn->prepare("INSERT INTO RESIDENCE (user_id, name, location_lat, location_lng, type, start_date, end_date)
                                            VALUES (:user_id, :name, :location_lat, :location_lng, :type, :start_date, :end_date)
@@ -47,10 +57,10 @@ try {
             // Exécuter la requête
             $stmtResidence->execute([
                 ':user_id' => $user['id'],
-                ':name' => $data['residence']['name'],
+                ':name' => $residenceName,
                 ':location_lat' => $data['residence']['location_lat'],
                 ':location_lng' => $data['residence']['location_lng'],
-                ':type' => $data['residence']['type'],
+                ':type' => $residenceType,
                 ':start_date' => $data['residence']['start_date'],
                 ':end_date' => $data['residence']['end_date']
             ]);
@@ -88,12 +98,14 @@ try {
                                password = VALUES(password),
                                role = VALUES(role)");
 
-    $stmtResidence = $conn->prepare("INSERT INTO RESIDENCE (user_id, name, location_lat, location_lng, type)
-                                    VALUES (:user_id, :name, :location_lat, :location_lng, :type)
+    $stmtResidence = $conn->prepare("INSERT INTO RESIDENCE (user_id, name, location_lat, location_lng, type, start_date, end_date)
+                                    VALUES (:user_id, :name, :location_lat, :location_lng, :type, :start_date, :end_date)
                                     ON DUPLICATE KEY UPDATE
                                     name = VALUES(name),
                                     location_lat = VALUES(location_lat),
-                                    location_lng = VALUES(location_lng)");
+                                    location_lng = VALUES(location_lng),
+                                    start_date = VALUES(start_date),
+                                    end_date = VALUES(end_date)");
 
     // Démarrer une transaction
     $conn->beginTransaction();
@@ -132,7 +144,9 @@ try {
                 ':name' => $user['main']['location']['name'],
                 ':location_lat' => $user['main']['location']['lat'],
                 ':location_lng' => $user['main']['location']['lon'],
-                ':type' => 'main'
+                ':type' => 'main',
+                ':start_date' => isset($user['main']['startDate']) ? $user['main']['startDate'] : date('Y-m-d'),
+                ':end_date' => isset($user['main']['endDate']) ? $user['main']['endDate'] : date('Y-m-d', strtotime('+1 year'))
             ]);
         }
 
@@ -143,7 +157,22 @@ try {
                 ':name' => $user['secondary']['location']['name'],
                 ':location_lat' => $user['secondary']['location']['lat'],
                 ':location_lng' => $user['secondary']['location']['lon'],
-                ':type' => 'secondary'
+                ':type' => 'secondary',
+                ':start_date' => isset($user['secondary']['startDate']) ? $user['secondary']['startDate'] : date('Y-m-d'),
+                ':end_date' => isset($user['secondary']['endDate']) ? $user['secondary']['endDate'] : date('Y-m-d', strtotime('+1 year'))
+            ]);
+        }
+        
+        // Traitement de la résidence "other" (convertie en "secondary" avec préfixe)
+        if (isset($user['other']) && isset($user['other']['location'])) {
+            $stmtResidence->execute([
+                ':user_id' => $userId,
+                ':name' => "other_" . $user['other']['location']['name'],
+                ':location_lat' => $user['other']['location']['lat'],
+                ':location_lng' => $user['other']['location']['lon'],
+                ':type' => 'secondary', // On utilise "secondary" pour le type de la résidence "other"
+                ':start_date' => isset($user['other']['startDate']) ? $user['other']['startDate'] : date('Y-m-d'),
+                ':end_date' => isset($user['other']['endDate']) ? $user['other']['endDate'] : date('Y-m-d', strtotime('+1 year'))
             ]);
         }
     }
