@@ -1,3 +1,10 @@
+/**
+ * Climatomètre BUT1 R&T - Interface d'administration
+ * Ce script gère l'interface d'administration côté client.
+ * Il permet la gestion des utilisateurs, des groupes et des données.
+ * @author Groupe 3 (Sephora, Natanaël, Tom)
+ * @version 1.0.0
+ */
 document.addEventListener('DOMContentLoaded', function() {
     // Éléments du DOM
     const groupsTable = document.getElementById('groups-table').getElementsByTagName('tbody')[0];

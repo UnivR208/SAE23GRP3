@@ -1,3 +1,10 @@
+/**
+ * Climatomètre BUT1 R&T - Gestion de l'authentification
+ * Ce script gère l'authentification côté client.
+ * Il gère le formulaire de connexion et la déconnexion.
+ * @author Groupe 3 (Sephora, Natanaël, Tom)
+ * @version 1.0.0
+ */
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
     const errorMessage = document.getElementById('errorMessage');

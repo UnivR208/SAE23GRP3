@@ -1,3 +1,10 @@
+/**
+ * Climatomètre BUT1 R&T - Administration
+ * Ce script gère l'interface d'administration du système.
+ * Il permet la gestion des utilisateurs, des groupes et des données météorologiques.
+ * @author Groupe 3 (Sephora, Natanaël, Tom)
+ * @version 1.0.0
+ */
 <?php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');

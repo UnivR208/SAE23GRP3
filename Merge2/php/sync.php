@@ -1,13 +1,10 @@
 /**
  * Climatomètre BUT1 R&T - Synchronisation des données
- * 
- * Ce script gère la synchronisation des données entre le frontend et la base de données.
- * Il traite les requêtes AJAX pour la mise à jour des informations météorologiques
- * et des données des utilisateurs.
- * 
- * @author Groupe 3 (Sephora, Natanaël, Tom)
- * @version 1.0.0
- * @package Climatomètre
+ Ce script gère la synchronisation des données entre le frontend et la base de données.
+ Il traite les requêtes AJAX pour la mise à jour des informations météorologiques
+ et des données des utilisateurs. 
+ @author Groupe 3 (Sephora, Natanaël, Tom)
+ @version 1.0.0
  */
 
 <?php

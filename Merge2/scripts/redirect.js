@@ -1,3 +1,10 @@
+/**
+ * Climatomètre BUT1 R&T - Gestion des redirections
+ * Ce script gère les redirections et la navigation entre les pages.
+ * Il vérifie les permissions et gère l'accès aux différentes sections.
+ * @author Groupe 3 (Sephora, Natanaël, Tom)
+ * @version 1.0.0
+ */
 document.addEventListener('DOMContentLoaded', async function() {
     // Vérifier si nous sommes déjà sur la page de login
     if (window.location.pathname.includes('login.html')) {

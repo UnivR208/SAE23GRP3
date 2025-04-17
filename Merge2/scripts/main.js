@@ -1,3 +1,10 @@
+/**
+ * Climatomètre BUT1 R&T - Interface principale
+ * Ce script gère l'interface principale de l'application.
+ * Il gère l'affichage des données météorologiques et des résidences.
+ * @author Groupe 3 (Sephora, Natanaël, Tom)
+ * @version 1.0.0
+ */
 document.addEventListener('DOMContentLoaded', function() {
     const weatherManager = new WeatherManager();
 

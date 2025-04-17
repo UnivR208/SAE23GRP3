@@ -1,3 +1,10 @@
+/**
+ * Climatomètre BUT1 R&T - Gestion de la météo
+ * Ce script gère les fonctionnalités liées à la météo.
+ * Il récupère et affiche les données météorologiques.
+ * @author Groupe 3 (Sephora, Natanaël, Tom)
+ * @version 1.0.0
+ */
 class WeatherManager {
     constructor() {
         this.currentWeather = null;

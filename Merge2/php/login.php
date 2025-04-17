@@ -1,3 +1,10 @@
+/**
+ * Climatomètre BUT1 R&T - Authentification
+ * Ce script gère l'authentification des utilisateurs.
+ * Il vérifie les identifiants et gère les sessions.
+ * @author Groupe 3 (Sephora, Natanaël, Tom)
+ * @version 1.0.0
+ */
 <?php
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
