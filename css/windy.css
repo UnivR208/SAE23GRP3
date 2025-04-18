@@ -1,0 +1,174 @@
+/* Style de base pour la page d'accueil */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(to bottom right, #a6ddf0, #b3e5fc);
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+body.night-mode {
+    background: #1a1a1a;
+    color: white;
+}
+
+.logo {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 180px;
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+}
+
+.title {
+    text-align: center;
+    padding-top: 100px;
+    color: #1e1e1e;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    animation: fadeIn 1s ease-out;
+}
+
+.title .highlight {
+    font-size: 3.5em;
+    font-weight: bold;
+    color: #1e1e1e;
+    display: inline-block;
+    animation: slideIn 1s ease-out;
+}
+
+.title h1 {
+    font-size: 70px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.auteurs {
+    margin-top: 30px;
+    font-size: 1.2em;
+    color: #2d2d2d;
+    opacity: 0;
+    animation: fadeIn 1s ease-out forwards;
+    animation-delay: 0.5s;
+}
+
+/* Animations des nuages */
+.cloud {
+    position: absolute;
+    width: 150px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.night-mode .cloud {
+    opacity: 0.3;
+    filter: brightness(0.6);
+}
+
+.cloud1 {
+    top: 40px;
+    left: 60px;
+    animation: floatAnimation 60s linear infinite;
+}
+
+.cloud2 {
+    bottom: 20px;
+    left: 20px;
+    animation: floatAnimation 45s linear infinite;
+}
+
+.cloud3 {
+    top: 80px;
+    right: 200px;
+    animation: floatAnimation 50s linear infinite;
+}
+
+.cloud4 {
+    bottom: 40px;
+    right: 100px;
+    animation: floatAnimation 55s linear infinite;
+}
+
+@keyframes floatAnimation {
+    from {
+        transform: translateX(-100vw);
+    }
+    to {
+        transform: translateX(100vw);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Effet de brume */
+.fog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.2)
+    );
+    pointer-events: none;
+    animation: fogAnimation 10s ease-in-out infinite;
+}
+
+@keyframes fogAnimation {
+    0% {
+        opacity: 0.1;
+    }
+    50% {
+        opacity: 0.2;
+    }
+    100% {
+        opacity: 0.1;
+    }
+}
+
+/* Mode nuit */
+.night-mode .title,
+.night-mode .title .highlight,
+.night-mode .auteurs {
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+}
+
+.night-mode .fog {
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.1),
+        rgba(0, 0, 0, 0.2)
+    );
+}
+  

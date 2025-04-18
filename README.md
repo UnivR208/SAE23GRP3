@@ -1,65 +1,99 @@
-# Climatomètre des étudiants BUT1 R&T
+# Climatomètre BUT1 R&T
 
-## Présentation du projet
+## Présentation
+Le Climatomètre est une application web qui permet de suivre et visualiser les conditions météorologiques des résidences (principale et secondaire) des étudiants du BUT1 R&T. L'application offre une interface intuitive pour consulter les données météo en temps réel et historiques, ainsi que des statistiques collectives.
 
-Ce projet vise à développer un outil informatique qui affiche le "climatomètre" des étudiants du BUT1 R&T. L'application cartographie les climats des résidences (principale et secondaire) d'un groupe d'étudiants universitaires, recense le climat quotidien et stocke ces données dans une base de données.
+## Fonctionnalités
+- Affichage du climat journalier pour chaque étudiant
+- Gestion des résidences principales et secondaires
+- Visualisation des données météo en temps réel
+- Historique des conditions météorologiques
+- Statistiques collectives du groupe
+- Interface responsive et moderne
 
-## Fonctionnalités principales
+## Installation
 
-- Affichage du climat journalier pour chaque étudiant (résidence principale et secondaire)
-- Stockage des données climatiques dans une base de données
-- Visualisation du temps présent et historique de chaque étudiant
-- Affichage du climat médian du groupe d'étudiants (climatomètre collectif)
-- Interface de gestion des données climatiques
+### Prérequis
+- Un serveur web (Apache, Nginx, etc.)
+- PHP 7.4 ou supérieur
+- MySQL 5.7 ou supérieur
+- Une clé API OpenWeatherMap
 
-## Gestion des données
+### Étapes d'installation
+1. Cloner le dépôt :
+```bash
+git clone [URL_DU_REPO]
+```
 
-Les informations pour chaque étudiant incluent :
-- Nom et prénom
-- Adresse de résidence principale (+ dates de début et fin)
-- Adresse de résidence secondaire optionnelle (+ dates de début et fin)
-- Données climatiques horodatées pour chaque lieu de résidence
+2. Installer les dépendances :
+```bash
+cd climatomètre
+npm install
+```
 
-Deux méthodes de saisie des données sont proposées :
-1. Via un fichier JSON ou CSV complété par des informations provenant d'une API météo
-2. Via une base de données à renseigner depuis une interface web ou mobile
+3. Configurer la base de données :
+- Créer une base de données MySQL
+- Importer le fichier `database.sql`
+- Configurer les paramètres de connexion dans `config/database.php`
 
-## Implémentation technique
+4. Configurer l'API météo :
+- Obtenir une clé API sur [OpenWeatherMap](https://openweathermap.org/api)
+- Mettre à jour la clé API dans `js/main.js`
 
-Le projet peut être développé sous forme de site web ou d'application mobile, rendant l'outil facilement accessible aux utilisateurs via un simple navigateur web.
+5. Configurer le serveur web :
+- Pointer le document root vers le dossier `public`
+- Configurer les permissions des dossiers `data` et `cache`
 
-### Étapes de réalisation
+## Structure du projet
+```
+climatomètre/
+├── css/
+│   ├── main.css
+│   └── weather.css
+├── js/
+│   ├── main.js
+│   └── weather.js
+├── public/
+│   └── index.html
+├── config/
+│   └── database.php
+├── data/
+│   └── students.json
+└── README.md
+```
 
-#### Section 1 : Mise en place de l'environnement de développement
-- Utilisation d'une machine virtuelle ou accès à distance aux ressources (ESX, Proxmox, Guacamole, Docker, etc.)
-- Installation d'un serveur web non chiffré (Nginx ou Apache)
-- Possibilité d'utiliser des frameworks : Python (Django, Flask), JavaScript (jQuery), Java (Play), etc.
+## Utilisation
+1. Accéder à l'application via un navigateur web
+2. Rechercher un étudiant par son nom
+3. Sélectionner la résidence (principale ou secondaire)
+4. Consulter les données météo et les statistiques
 
-#### Section 2 : Réalisation documentée
-- Développement algorithmique (scripts serveur, dépôt de code)
-- Technologies web (HTML, CSS)
-- Base de données avec manipulation complète (ajout, suppression, modification)
+## API
+L'application utilise l'API OpenWeatherMap pour récupérer les données météorologiques. Les endpoints utilisés sont :
+- `/weather` pour les conditions actuelles
+- `/forecast` pour les prévisions
+- `/onecall` pour les données complètes
 
-#### Section 3 : Formation et documentation
-- Organisation d'une session de formation en français et anglais
-- Documentation technique de l'application en anglais
-- Tutoriel d'installation et d'utilisation
+## Sécurité
+- Les données sensibles sont stockées dans des variables d'environnement
+- Les requêtes API sont sécurisées avec HTTPS
+- Les entrées utilisateur sont validées et échappées
 
-## Modalités d'évaluation
+## Contribution
+Les contributions sont les bienvenues ! Pour contribuer :
+1. Forker le projet
+2. Créer une branche pour votre fonctionnalité
+3. Commiter vos changements
+4. Pousser vers la branche
+5. Ouvrir une Pull Request
 
-- Site fonctionnel et dynamique
-- Manipulation des données (CSV/JSON et BDD)
-- Documentation technique complète
-- Tutoriel d'installation et d'utilisation
-- Dépôt du code source
-- Démonstration fonctionnelle
-- Présentation des outils de développement utilisés
-- Méthode de validation (cahier de tests, tests unitaires)
+## Licence
+Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
-## Équipe
+## Auteurs
+- Nathanaël
+- Séphora
+- Tom 
 
-Ce projet peut être réalisé par un groupe de 2 ou 3 étudiants.
-
----
-
-*Note: Ce projet expérimental propose un cahier des charges intentionnellement imparfait et évolutif, reflétant la complexité des situations réelles de développement.*
+## Support
+Pour toute question ou problème, veuillez ouvrir une issue sur le dépôt GitHub. 

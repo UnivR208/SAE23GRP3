@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAÉ 23 - Solution informatique.</title>
+  <link rel="stylesheet" href="css/windy.css">
+  <style>
+    /* Ajout pour la transition */
+    #fade-out {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #66b6d2;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s ease-in-out;
+      z-index: 9999;
+    }
+    #fade-out.active {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <link rel="icon" type="./image.png" href="logo_transparent.png">
+    <img src="img/logo_transparent.svg" alt="Windy" class="logo">
+  </header>
+  <main>
+    <section class="title">
+      <h1><span class="highlight">SAÉ 23 :</span><br>Mettre en place une solution informatique.</h1>
+      <p class="auteurs">Nathanaël VINCENT, Tom DAVID et Séphora TALOUKA<br>IUT NFC | BUT R&T 1ère année | groupe 3</p>
+    </section>
+
+    <img src="img/cloud 1 trans.svg" class="cloud cloud1" alt="Nuage 1">
+    <img src="img/cloud 2 trans.svg" class="cloud cloud2" alt="Nuage 2">
+    <img src="img/cloud 3 trans.svg" class="cloud cloud3" alt="Nuage 3">
+    <img src="img/cloud 4 trans.svg" class="cloud cloud4" alt="Nuage 4">
+  </main>
+
+  <!-- L'écran noir pour la transition -->
+  <div id="fade-out"></div>
+
+  <script>
+    setTimeout(() => {
+      // Active la transition
+      document.getElementById('fade-out').classList.add('active');
+
+      // Redirection après la transition (1s)
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 1000);
+    }, 2000); // Lance la transition après 1 seconde (total = 2 secondes)
+  </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windy - Climatomètre BUT1 R&T</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/windy.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Climatomètre BUT1 R&T</h1>
+            <button id="logout-button" class="logout-btn">Déconnexion</button>
+        </div>
+        <p>Suivi des climats des résidences étudiantes</p>
+
+        <div class="section">
+            <h2>Sélection de l'étudiant</h2>
+            <div class="search-container">
+                <input type="text" id="student-search" placeholder="Rechercher un étudiant...">
+                <button id="search-button">Rechercher</button>
+            </div>
+            <div id="student-info">
+                <!-- Les informations de l'étudiant seront affichées ici -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Résidences</h2>
+            <div class="residence-controls">
+                <button id="main-residence" class="residence-button" data-residence="main" disabled>Résidence Principale</button>
+                <button id="secondary-residence" class="residence-button" data-residence="secondary" disabled>Résidence Secondaire</button>
+                <button id="other-residence" class="residence-button" data-residence="other" disabled>Autre Résidence</button>
+            </div>
+
+            <div class="residence-actions">
+                <button id="delete-residence" class="btn btn-danger" style="display: none;">
+                    <span class="icon">🗑️</span> Supprimer la résidence
+                </button>
+            </div>
+
+            <div id="add-residence-form" style="margin-top: 20px;">
+                <h3>Ajouter une résidence</h3>
+                <div class="form-fields">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="city-name" placeholder="Nom de la ville">
+                        <button id="use-location-button" title="Utiliser ma position actuelle">📍 Ma position</button>
+                    </div>
+                    <div class="date-fields">
+                        <input type="date" id="start-date" placeholder="Date de début">
+                        <input type="date" id="end-date" placeholder="Date de fin">
+                    </div>
+                    <div class="form-row">
+                        <select id="residence-type">
+                            <option value="main">Principale</option>
+                            <option value="secondary">Secondaire</option>
+                            <option value="other">Autre</option>
+                        </select>
+                        <button id="add-residence-button">Ajouter</button>
+                    </div>
+                </div>
+                <div id="add-residence-error" style="color: red;"></div>
+            </div>
+
+            <div id="weather-info">
+                <h3>Météo Actuelle</h3>
+                <div id="current-weather">
+                    <!-- Les informations météo seront affichées ici -->
+                </div>
+                <div id="forecast">
+                    <!-- Les prévisions seront affichées ici -->
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Climatomètre Collectif</h2>
+            <div id="climate-stats">
+                <!-- Les statistiques seront affichées ici -->
+            </div>
+        </div>
+    </div>
+
+    <!-- <script src="scripts/redirect.js"></script> -->
+    <script src="scripts/main.js"></script>
+    <script src="scripts/weather.js"></script>
+    <script src="scripts/redirect.js"></script>
+
+    <img src="img/cloud 2 trans.svg" alt="Nuage" class="cloud cloud1" />
+    <img src="img/cloud 3 trans.svg" alt="Nuage" class="cloud cloud2" />
+    <img src="img/cloud 5 trans.svg" alt="Nuage" class="cloud cloud3" />
+    <img src="img/cloud 6 trans.svg" alt="Nuage" class="cloud cloud4" />
+    <img src="img/cloud 7 trans.svg" alt="Nuage" class="cloud cloud5" />
+    <img src="img/cloud 8 trans.svg" alt="Nuage" class="cloud cloud6" />
+
+    <img src="img/cloud 4 trans.svg" alt="Étoile" class="star star1" />
+    <img src="img/cloud 1 trans.svg" alt="Étoile" class="star star2" />
+</body>
+</html> 
