@@ -98,33 +98,33 @@ try {
             ]);
         }
 
-        // Gérer les localisations principales
+        // Synchroniser la résidence principale
         if (isset($user['main']) && isset($user['main']['location'])) {
-            $stmt = $pdo->prepare("INSERT INTO user_locations (user_id, name, latitude, longitude, type) 
-                                 VALUES (:user_id, :name, :latitude, :longitude, 'main')
+            $stmt = $pdo->prepare("INSERT INTO RESIDENCE (user_id, name, location_lat, location_lng, type) 
+                                 VALUES (:user_id, :name, :lat, :lng, 'main')
                                  ON DUPLICATE KEY UPDATE 
-                                 name = :name, latitude = :latitude, longitude = :longitude");
+                                 name = :name, location_lat = :lat, location_lng = :lng");
             
             $stmt->execute([
                 ':user_id' => $user['id'],
                 ':name' => $user['main']['location']['name'],
-                ':latitude' => $user['main']['location']['lat'],
-                ':longitude' => $user['main']['location']['lon']
+                ':lat' => $user['main']['location']['lat'],
+                ':lng' => $user['main']['location']['lon']
             ]);
         }
 
-        // Gérer les localisations secondaires
+        // Synchroniser la résidence secondaire
         if (isset($user['secondary']) && isset($user['secondary']['location'])) {
-            $stmt = $pdo->prepare("INSERT INTO user_locations (user_id, name, latitude, longitude, type) 
-                                 VALUES (:user_id, :name, :latitude, :longitude, 'secondary')
+            $stmt = $pdo->prepare("INSERT INTO RESIDENCE (user_id, name, location_lat, location_lng, type) 
+                                 VALUES (:user_id, :name, :lat, :lng, 'secondary')
                                  ON DUPLICATE KEY UPDATE 
-                                 name = :name, latitude = :latitude, longitude = :longitude");
+                                 name = :name, location_lat = :lat, location_lng = :lng");
             
             $stmt->execute([
                 ':user_id' => $user['id'],
                 ':name' => $user['secondary']['location']['name'],
-                ':latitude' => $user['secondary']['location']['lat'],
-                ':longitude' => $user['secondary']['location']['lon']
+                ':lat' => $user['secondary']['location']['lat'],
+                ':lng' => $user['secondary']['location']['lon']
             ]);
         }
     }

@@ -33,6 +33,20 @@ $required_tables = [
             FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
         )
     ",
+    'RESIDENCE' => "
+        CREATE TABLE IF NOT EXISTS RESIDENCE (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id VARCHAR(255),
+            name VARCHAR(255) NOT NULL,
+            location_lat DECIMAL(10,8),
+            location_lng DECIMAL(11,8),
+            type ENUM('main', 'secondary', 'other') NOT NULL,
+            start_date DATE,
+            end_date DATE,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_user_residence_type (user_id, type)
+        )
+    ",
     'user_locations' => "
         CREATE TABLE IF NOT EXISTS user_locations (
             id INT AUTO_INCREMENT PRIMARY KEY,
