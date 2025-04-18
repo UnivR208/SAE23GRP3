@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once 'Database.php';
+require_once 'config/database.php';
 
 try {
     $db = new Database();
@@ -86,7 +86,19 @@ try {
             ':role' => $user['role'] === 'admin' ? 'admin' : 'student'
         ]);
 
-        // Gérer les localisations
+        // Gérer les relations utilisateur-groupe si spécifié
+        if (isset($user['group_id'])) {
+            $stmt = $pdo->prepare("INSERT INTO user_groups (user_id, group_id) 
+                                 VALUES (:user_id, :group_id)
+                                 ON DUPLICATE KEY UPDATE group_id = :group_id");
+            
+            $stmt->execute([
+                ':user_id' => $user['id'],
+                ':group_id' => $user['group_id']
+            ]);
+        }
+
+        // Gérer les localisations principales
         if (isset($user['main']) && isset($user['main']['location'])) {
             $stmt = $pdo->prepare("INSERT INTO user_locations (user_id, name, latitude, longitude, type) 
                                  VALUES (:user_id, :name, :latitude, :longitude, 'main')
@@ -101,6 +113,7 @@ try {
             ]);
         }
 
+        // Gérer les localisations secondaires
         if (isset($user['secondary']) && isset($user['secondary']['location'])) {
             $stmt = $pdo->prepare("INSERT INTO user_locations (user_id, name, latitude, longitude, type) 
                                  VALUES (:user_id, :name, :latitude, :longitude, 'secondary')
@@ -114,33 +127,7 @@ try {
                 ':longitude' => $user['secondary']['location']['lon']
             ]);
         }
-
-        // Gérer les relations utilisateur-groupe
-        if (isset($user['group_id'])) {
-            $stmt = $pdo->prepare("INSERT INTO user_groups (user_id, group_id) 
-                                 VALUES (:user_id, :group_id)
-                                 ON DUPLICATE KEY UPDATE group_id = :group_id");
-            
-            $stmt->execute([
-                ':user_id' => $user['id'],
-                ':group_id' => $user['group_id']
-            ]);
-        }
     }
-
-    // Mettre à jour la météo moyenne des groupes
-    $stmt = $pdo->prepare("INSERT INTO group_weather (group_id, temperature_avg, humidity_avg, wind_speed_avg)
-                          SELECT 
-                              ug.group_id,
-                              AVG(w.temperature) as temperature_avg,
-                              AVG(w.humidity) as humidity_avg,
-                              AVG(w.wind_speed) as wind_speed_avg
-                          FROM user_groups ug
-                          JOIN user_locations ul ON ug.user_id = ul.user_id
-                          JOIN weather_data w ON ul.id = w.location_id
-                          WHERE w.timestamp >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
-                          GROUP BY ug.group_id");
-    $stmt->execute();
 
     // Valider la transaction
     $pdo->commit();

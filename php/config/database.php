@@ -12,7 +12,6 @@ $required_tables = [
             id VARCHAR(255) PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
-            password VARCHAR(255) NOT NULL,
             role ENUM('student', 'admin') DEFAULT 'student',
             group_name VARCHAR(255)
         )
@@ -25,12 +24,45 @@ $required_tables = [
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ",
+    'user_groups' => "
+        CREATE TABLE IF NOT EXISTS user_groups (
+            user_id VARCHAR(255),
+            group_id VARCHAR(10),
+            PRIMARY KEY (user_id, group_id),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+        )
+    ",
+    'user_locations' => "
+        CREATE TABLE IF NOT EXISTS user_locations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id VARCHAR(255),
+            name VARCHAR(255),
+            latitude DECIMAL(10,8),
+            longitude DECIMAL(11,8),
+            type ENUM('main', 'secondary') NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_user_location (user_id, type)
+        )
+    ",
+    'weather_data' => "
+        CREATE TABLE IF NOT EXISTS weather_data (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            location_id INT,
+            temperature DECIMAL(5,2),
+            humidity INT,
+            wind_speed DECIMAL(5,2),
+            description VARCHAR(255),
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (location_id) REFERENCES user_locations(id) ON DELETE CASCADE
+        )
+    ",
     'group_weather' => "
         CREATE TABLE IF NOT EXISTS group_weather (
             group_id VARCHAR(10),
-            latitude DECIMAL(10,8),
-            longitude DECIMAL(11,8),
-            weather_data JSON,
+            temperature_avg DECIMAL(5,2),
+            humidity_avg INT,
+            wind_speed_avg DECIMAL(5,2),
             last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (group_id),
             FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
@@ -58,6 +90,12 @@ class Database {
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->exec("set names utf8");
+
+            // Créer les tables si elles n'existent pas
+            global $required_tables;
+            foreach ($required_tables as $table_name => $create_query) {
+                $this->conn->exec($create_query);
+            }
         } catch(PDOException $exception) {
             echo "Erreur de connexion: " . $exception->getMessage();
         }
