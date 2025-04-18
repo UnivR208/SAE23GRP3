@@ -174,35 +174,53 @@ button:hover {
 
 /* Contrôles des résidences */
 .residence-controls {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-bottom: 20px;
 }
 
 .residence-button {
-    min-height: 100px;
-    padding: 15px;
-    background-color: #007bff;
-    color: white;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+    padding: 10px 20px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.residence-button:hover:not(:disabled) {
-    background-color: #0056b3;
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+.residence-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
-.residence-button:disabled {
-    background-color: rgba(0, 0, 0, 0.2);
-    cursor: not-allowed;
+.residence-button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+}
+
+/* Styles pour le bouton de suppression */
+.btn.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.btn.btn-danger .icon {
+    font-size: 1.2em;
 }
 
 /* Formulaire d'ajout */
@@ -640,9 +658,7 @@ input:focus, select:focus {
 }
 
 .residence-actions {
-    margin: 10px 0;
-    display: flex;
-    justify-content: flex-end;
+    margin: 15px 0;
 }
 
 .icon {

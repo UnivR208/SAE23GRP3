@@ -128,18 +128,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Gestionnaires d'événements pour les boutons de résidence
+    document.getElementById('main-residence').addEventListener('click', () => handleResidenceClick('main'));
+    document.getElementById('secondary-residence').addEventListener('click', () => handleResidenceClick('secondary'));
+    document.getElementById('other-residence').addEventListener('click', () => handleResidenceClick('other'));
+
     // Variable pour stocker les résidences actuelles
     let currentResidences = [];
     let currentResidenceType = null;
 
     // Mise à jour de handleResidenceClick pour gérer le bouton de suppression
     function handleResidenceClick(residenceType) {
+        // Retirer la classe active de tous les boutons
+        document.querySelectorAll('.residence-button').forEach(btn => btn.classList.remove('active'));
+        
+        // Ajouter la classe active au bouton cliqué
+        const clickedButton = document.querySelector(`[data-residence="${residenceType}"]`);
+        if (clickedButton) {
+            clickedButton.classList.add('active');
+        }
+
         currentResidenceType = residenceType;
         const residenceData = currentResidences.find(r => r.type === residenceType);
         
         // Afficher/masquer le bouton de suppression
         if (residenceData) {
-            deleteButton.style.display = 'flex';
+            deleteButton.style.display = 'inline-flex';
+            deleteButton.setAttribute('data-residence-type', residenceType);
         } else {
             deleteButton.style.display = 'none';
         }
@@ -149,7 +164,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Gestionnaire d'événement pour le bouton de suppression
     deleteButton.addEventListener('click', async () => {
-        if (!currentResidenceType) return;
+        const residenceType = deleteButton.getAttribute('data-residence-type');
+        if (!residenceType) return;
 
         try {
             const response = await fetch(`${BASE_URL}/php/api/residence.php`, {
@@ -160,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({
                     action: 'delete_residence',
                     user_email: sessionStorage.getItem('userEmail'),
-                    residence_type: currentResidenceType
+                    residence_type: residenceType
                 })
             });
 
@@ -172,11 +188,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteButton.style.display = 'none';
                 showError('Résidence supprimée avec succès', 'success');
             } else {
-                showError(data.message);
+                throw new Error(data.message || 'Erreur lors de la suppression');
             }
         } catch (error) {
             console.error('Erreur lors de la suppression:', error);
-            showError('Erreur lors de la suppression de la résidence');
+            showError(error.message);
         }
     });
 
@@ -370,104 +386,47 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function loadStudentData(email) {
+    async function loadStudentData(userEmail) {
         try {
-            // Récupérer d'abord les informations de l'utilisateur
-            const userResponse = await fetch(`${BASE_URL}/php/api/user.php`, {
+            const response = await fetch(`${BASE_URL}/php/api/user.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     action: 'get_user',
-                    user_email: email
+                    user_email: userEmail
                 })
             });
 
-            if (!userResponse.ok) {
-                throw new Error(`Erreur HTTP: ${userResponse.status}`);
+            // Récupérer la réponse brute
+            const rawResponse = await response.text();
+            console.log('Réponse brute:', rawResponse);
+
+            // Essayer de parser la réponse JSON
+            let data;
+            try {
+                data = JSON.parse(rawResponse);
+            } catch (parseError) {
+                console.error('Erreur de parsing JSON:', parseError);
+                console.error('Réponse brute:', rawResponse);
+                throw new Error('Erreur lors du parsing de la réponse JSON');
             }
 
-            const userData = await userResponse.json();
-            
-            if (!userData.success) {
-                console.error('Erreur API user:', userData.message);
-                // On continue même si on ne peut pas récupérer le nom, on affichera juste l'email
-            }
-
-            // Mettre à jour l'affichage du nom de l'étudiant
-            const studentInfo = document.getElementById('student-info');
-            if (studentInfo) {
-                const userName = userData.success ? userData.user.name : 'Utilisateur';
-                studentInfo.innerHTML = `<p>Étudiant connecté : ${userName} (${email})</p>`;
-            }
-
-            // Charger les résidences
-            const response = await fetch(`${BASE_URL}/php/api/residence.php`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    action: 'get_residences',
-                    user_email: email
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
             if (data.success) {
-                // Stocker les résidences pour les utiliser plus tard
-                currentResidences = data.residences;
-                
-                // Mettre à jour l'état des boutons en fonction des résidences disponibles
-                const mainResidenceBtn = document.getElementById('main-residence');
-                const secondaryResidenceBtn = document.getElementById('secondary-residence');
-                const otherResidenceBtn = document.getElementById('other-residence');
-                
-                const mainResidence = currentResidences.find(r => r.type === 'main');
-                const secondaryResidence = currentResidences.find(r => r.type === 'secondary');
-                const otherResidence = currentResidences.find(r => r.type === 'other');
-                
-                // Activer/désactiver les boutons en fonction des résidences disponibles
-                if (mainResidenceBtn) {
-                    mainResidenceBtn.disabled = !mainResidence;
-                }
-                if (secondaryResidenceBtn) {
-                    secondaryResidenceBtn.disabled = !secondaryResidence;
-                }
-                if (otherResidenceBtn) {
-                    otherResidenceBtn.disabled = !otherResidence;
-                }
-                
-                // Mettre à jour l'affichage avec les résidences
-                updateResidenceDisplay(mainResidence, secondaryResidence, otherResidence);
-                
-                // Si une résidence est active, charger sa météo
-                if (mainResidence) {
-                    loadResidenceData('main', mainResidence);
-                    // Mettre en évidence la résidence principale par défaut
-                    if (mainResidenceBtn) mainResidenceBtn.classList.add('active');
-                } else if (secondaryResidence) {
-                    loadResidenceData('secondary', secondaryResidence);
-                    // Mettre en évidence la résidence secondaire par défaut
-                    if (secondaryResidenceBtn) secondaryResidenceBtn.classList.add('active');
-                } else if (otherResidence) {
-                    loadResidenceData('other', otherResidence);
-                    // Mettre en évidence la résidence autre par défaut
-                    if (otherResidenceBtn) otherResidenceBtn.classList.add('active');
-                }
+                // Mettre à jour les informations de l'utilisateur
+                sessionStorage.setItem('userEmail', data.user.email);
+                sessionStorage.setItem('userName', data.user.name);
+                studentInfo.innerHTML = `<p>Étudiant : ${data.user.name} (${data.user.email})</p>`;
+
+                // Charger les résidences de l'utilisateur
+                await loadUserResidences(data.user.email);
             } else {
-                console.error('Erreur API residence:', data.message);
-                showError('Erreur lors du chargement des résidences');
+                throw new Error(data.message || 'Erreur lors du chargement des données');
             }
         } catch (error) {
             console.error('Erreur lors du chargement des données:', error);
-            showError('Erreur lors du chargement des données');
+            showError(error.message);
         }
     }
 
@@ -581,5 +540,82 @@ document.addEventListener('DOMContentLoaded', function() {
         container.insertBefore(errorDiv, container.firstChild);
         
         setTimeout(() => errorDiv.remove(), 5000);
+    }
+
+    async function loadUserResidences(userEmail) {
+        try {
+            const response = await fetch(`${BASE_URL}/php/api/residence.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'get_residences',
+                    user_email: userEmail
+                })
+            });
+
+            // Récupérer la réponse brute
+            const rawResponse = await response.text();
+            console.log('Réponse résidences brute:', rawResponse);
+
+            // Essayer de parser la réponse JSON
+            let data;
+            try {
+                data = JSON.parse(rawResponse);
+            } catch (parseError) {
+                console.error('Erreur de parsing JSON (résidences):', parseError);
+                console.error('Réponse brute:', rawResponse);
+                throw new Error('Erreur lors du parsing de la réponse JSON des résidences');
+            }
+
+            if (data.success) {
+                // Stocker les résidences pour les utiliser plus tard
+                currentResidences = data.residences;
+                
+                // Mettre à jour l'état des boutons en fonction des résidences disponibles
+                const mainResidenceBtn = document.getElementById('main-residence');
+                const secondaryResidenceBtn = document.getElementById('secondary-residence');
+                const otherResidenceBtn = document.getElementById('other-residence');
+                
+                const mainResidence = currentResidences.find(r => r.type === 'main');
+                const secondaryResidence = currentResidences.find(r => r.type === 'secondary');
+                const otherResidence = currentResidences.find(r => r.type === 'other');
+                
+                // Activer/désactiver les boutons en fonction des résidences disponibles
+                if (mainResidenceBtn) {
+                    mainResidenceBtn.disabled = !mainResidence;
+                }
+                if (secondaryResidenceBtn) {
+                    secondaryResidenceBtn.disabled = !secondaryResidence;
+                }
+                if (otherResidenceBtn) {
+                    otherResidenceBtn.disabled = !otherResidence;
+                }
+                
+                // Mettre à jour l'affichage avec les résidences
+                updateResidenceDisplay(mainResidence, secondaryResidence, otherResidence);
+                
+                // Si une résidence est active, charger sa météo
+                if (mainResidence) {
+                    loadResidenceData('main', mainResidence);
+                    // Mettre en évidence la résidence principale par défaut
+                    if (mainResidenceBtn) mainResidenceBtn.classList.add('active');
+                } else if (secondaryResidence) {
+                    loadResidenceData('secondary', secondaryResidence);
+                    // Mettre en évidence la résidence secondaire par défaut
+                    if (secondaryResidenceBtn) secondaryResidenceBtn.classList.add('active');
+                } else if (otherResidence) {
+                    loadResidenceData('other', otherResidence);
+                    // Mettre en évidence la résidence autre par défaut
+                    if (otherResidenceBtn) otherResidenceBtn.classList.add('active');
+                }
+            } else {
+                throw new Error(data.message || 'Erreur lors du chargement des résidences');
+            }
+        } catch (error) {
+            console.error('Erreur lors du chargement des résidences:', error);
+            showError(error.message);
+        }
     }
 });

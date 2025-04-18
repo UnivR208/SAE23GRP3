@@ -2,7 +2,11 @@
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+
+// Nettoyer tout buffer de sortie existant
+if (ob_get_level()) ob_end_clean();
+ob_start();
 
 require_once '../config/database.php';
 require_once '../sync.php';
@@ -36,10 +40,11 @@ try {
                 $stmtResidences->execute([':user_id' => $user['id']]);
                 $residences = $stmtResidences->fetchAll(PDO::FETCH_ASSOC);
 
+                ob_clean();
                 echo json_encode([
                     'success' => true,
                     'residences' => $residences
-                ]);
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 break;
 
             case 'add_residence':
@@ -52,7 +57,6 @@ try {
                     throw new Exception("Utilisateur non trouvé");
                 }
 
-                // Vérifions s'il s'agit du type "dtu" et modifions le nom et le type en conséquence
                 $residenceType = $data['residence']['type'];
                 $residenceName = $data['residence']['name'];
 
@@ -103,10 +107,11 @@ try {
                 $sync = new Sync($conn);
                 $sync->syncToJson();
 
+                ob_clean();
                 echo json_encode([
                     'success' => true,
                     'message' => 'Résidence ' . ($existing ? 'mise à jour' : 'ajoutée') . ' avec succès'
-                ]);
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 break;
 
             case 'delete_residence':
@@ -130,10 +135,11 @@ try {
                 $sync = new Sync($conn);
                 $sync->syncToJson();
 
+                ob_clean();
                 echo json_encode([
                     'success' => true,
                     'message' => 'Résidence supprimée avec succès'
-                ]);
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 break;
 
             default:
@@ -145,8 +151,12 @@ try {
 } catch (Exception $e) {
     error_log("Erreur API residence: " . $e->getMessage());
     http_response_code(500);
+    ob_clean();
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
-    ]);
-} 
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+// Vider et fermer le buffer de sortie
+ob_end_flush(); 
