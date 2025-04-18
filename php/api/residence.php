@@ -5,6 +5,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json');
 
 require_once '../config/database.php';
+require_once '../sync.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -51,7 +52,7 @@ try {
                     throw new Exception("Utilisateur non trouvé");
                 }
 
-                // Vérifions s'il s'agit du type "other" et modifions le nom et le type en conséquence
+                // Vérifions s'il s'agit du type "dtu" et modifions le nom et le type en conséquence
                 $residenceType = $data['residence']['type'];
                 $residenceName = $data['residence']['name'];
 
@@ -98,9 +99,13 @@ try {
                     ]);
                 }
 
+                // Synchroniser avec le fichier JSON
+                $sync = new Sync($conn);
+                $sync->syncToJson();
+
                 echo json_encode([
                     'success' => true,
-                    'message' => 'Résidence ajoutée avec succès'
+                    'message' => 'Résidence ' . ($existing ? 'mise à jour' : 'ajoutée') . ' avec succès'
                 ]);
                 break;
 
@@ -115,22 +120,15 @@ try {
                 }
 
                 // Supprimer la résidence
-                if ($data['residence_type'] === 'other') {
-                    // Pour "other", supprimer la résidence de type other
-                    $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = 'other'");
-                    $stmtDelete->execute([':user_id' => $user['id']]);
-                } else if ($data['residence_type'] === 'secondary') {
-                    // Pour "secondary", suppression standard
-                    $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = 'secondary'");
-                    $stmtDelete->execute([':user_id' => $user['id']]);
-                } else {
-                    // Pour "main", suppression standard
-                    $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = :type");
-                    $stmtDelete->execute([
-                        ':user_id' => $user['id'],
-                        ':type' => $data['residence_type']
-                    ]);
-                }
+                $stmtDelete = $conn->prepare("DELETE FROM RESIDENCE WHERE user_id = :user_id AND type = :type");
+                $stmtDelete->execute([
+                    ':user_id' => $user['id'],
+                    ':type' => $data['residence_type']
+                ]);
+
+                // Synchroniser avec le fichier JSON
+                $sync = new Sync($conn);
+                $sync->syncToJson();
 
                 echo json_encode([
                     'success' => true,
@@ -151,5 +149,4 @@ try {
         'success' => false,
         'message' => $e->getMessage()
     ]);
-}
-?> 
+} 

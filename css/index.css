@@ -620,4 +620,31 @@ input:focus, select:focus {
 #toggle-theme:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.residence-actions {
+    margin: 10px 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.icon {
+    font-size: 1.2em;
 } 

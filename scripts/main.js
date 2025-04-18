@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const useLocationButton = document.getElementById('use-location-button');
     const addResidenceForm = document.getElementById('add-residence-form');
     const logoutButton = document.getElementById('logout-button');
+    const deleteButton = document.getElementById('delete-residence');
 
     // Gestion de la déconnexion
     logoutButton.addEventListener('click', () => {
@@ -127,42 +128,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Gestion du changement de résidence
+    // Variable pour stocker les résidences actuelles
+    let currentResidences = [];
+    let currentResidenceType = null;
+
+    // Mise à jour de handleResidenceClick pour gérer le bouton de suppression
     function handleResidenceClick(residenceType) {
-        console.log('Clic sur la résidence:', residenceType); // Debug
-        const residence = currentResidences?.find(r => r.type === residenceType);
-        console.log('Résidence trouvée:', residence); // Debug
+        currentResidenceType = residenceType;
+        const residenceData = currentResidences.find(r => r.type === residenceType);
         
-        if (residence) {
-            // Mettre à jour l'interface visuelle
-            document.querySelectorAll('.residence-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            const clickedButton = document.querySelector(`[data-residence="${residenceType}"]`);
-            if (clickedButton) {
-                clickedButton.classList.add('active');
-            }
-            
-            // Charger les données météo
-            loadResidenceData(residenceType, residence).then(() => {
-                console.log('Données météo chargées pour:', residenceType); // Debug
-            }).catch(error => {
-                console.error('Erreur lors du chargement des données:', error);
-                showError('Erreur lors du chargement des données météo');
-            });
+        // Afficher/masquer le bouton de suppression
+        if (residenceData) {
+            deleteButton.style.display = 'flex';
         } else {
-            console.log('Aucune résidence trouvée pour:', residenceType); // Debug
-            showError(`Aucune résidence ${residenceType} trouvée`);
+            deleteButton.style.display = 'none';
         }
+
+        loadResidenceData(residenceType, residenceData);
     }
 
-    // Ajouter les gestionnaires d'événements pour les boutons de résidence
-    document.querySelectorAll('.residence-button').forEach(button => {
-        button.addEventListener('click', () => {
-            const residenceType = button.getAttribute('data-residence');
-            handleResidenceClick(residenceType);
-        });
+    // Gestionnaire d'événement pour le bouton de suppression
+    deleteButton.addEventListener('click', async () => {
+        if (!currentResidenceType) return;
+
+        try {
+            const response = await fetch(`${BASE_URL}/php/api/residence.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'delete_residence',
+                    user_email: sessionStorage.getItem('userEmail'),
+                    residence_type: currentResidenceType
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                // Recharger les données après la suppression
+                await loadStudentData(sessionStorage.getItem('userEmail'));
+                deleteButton.style.display = 'none';
+                showError('Résidence supprimée avec succès', 'success');
+            } else {
+                showError(data.message);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la suppression:', error);
+            showError('Erreur lors de la suppression de la résidence');
+        }
     });
 
     // Gestion de l'ajout d'une résidence
@@ -354,9 +369,6 @@ document.addEventListener('DOMContentLoaded', function() {
             otherResidenceDiv.disabled = true;
         }
     }
-
-    // Variable pour stocker les résidences actuelles
-    let currentResidences = [];
 
     async function loadStudentData(email) {
         try {
